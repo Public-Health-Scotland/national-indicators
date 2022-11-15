@@ -50,25 +50,6 @@ excluded_locations <- c(
 )
 
 # Geography Lookups ----
-# Update to most recent postcode lookup.
-get_pc_lookup <- function(version, columns) {
-  pc_lookup <- readr::read_rds(
-    glue::glue(
-      "/conf/linkage/output/lookups/Unicode/Geography/Scottish Postcode Directory/Scottish_Postcode_Directory_{version}.rds"
-    )
-  ) %>%
-    dplyr::select(all_of({{ columns }}))
-  return(pc_lookup)
-}
-
-# Get the most recent locality lookup from Geographies team
-get_locality_lookup <- function(version, columns) {
-  locality_lookup <- readr::read_rds(
-    glue::glue("/conf/linkage/output/lookups/Unicode/Geography/HSCP Locality/HSCP Localities_DZ11_Lookup_{version}.rds")
-  ) %>%
-    dplyr::select(all_of({{ columns }}))
-  return(locality_lookup)
-}
 
 # Returns a lookup with simd, locality, datazone based on postcode
 # For use with NI15
