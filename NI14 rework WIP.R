@@ -3,12 +3,9 @@ library(data.table)
 smra_extract <- process_ni14_smra_extract()
 gro_extract <- process_ni14_gro_extract()
 
-smra_extract_2 <- head(smra_extract, 1000000)
-
-
 # Match the death dates onto the main table
 smra_and_gro_extract <-
-  dplyr::left_join(smra_extract_2, gro_extract, by = "link_no") %>%
+  dplyr::left_join(smra_extract, gro_extract, by = "link_no") %>%
   # If the death date is the same as a discharge
   # we will discount it, as this cannot result in a readmission
   dplyr::mutate(

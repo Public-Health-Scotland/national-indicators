@@ -11,11 +11,12 @@
 #' @examples
 add_readmission_flag <- function(data) {
   return_data <- data %>%
+    dplyr::group_by(.data$link_no) %>%
+    dplyr::arrange(.data$cis_admdate, .data$cis_disdate, .by_group = TRUE) %>%
     dplyr::mutate(
       # If link_no is the same as the next link_no, calculate how many days there
       # are between the next admission and the last discharge
-      days_between_stays = dplyr::if_else(.data$link_no == dplyr::lead(.data$link_no),
-      as.integer(dplyr::lead(.data$cis_admdate) - .data$cis_disdate), NA_integer_),
+      days_between_stays = lubridate::interval(.data$cis_disdate, lead(.data$cis_admdate))/lubridate::ddays(1),
       # Make a flag, emerg_adm, for admission types 20, 21, 22, and 30-39.
       emerg_adm = .data$admission_type %in% c(20:22, 30:39),
       # If the next admission was an emergency
