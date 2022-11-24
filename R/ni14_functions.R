@@ -7,8 +7,6 @@
 #'
 #' @return A data frame with a new variable, flag28
 #' @export
-#'
-#' @examples
 add_readmission_flag <- function(data) {
   return_data <- data %>%
     dplyr::group_by(.data$link_no) %>%
