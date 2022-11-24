@@ -33,3 +33,31 @@ previous_update <- function() {
 latest_hace_year <- function() {
   "2022"
 }
+
+#' Vector of the indicators being updated this run
+#'
+#' @return A character vector of indicators, in format "NIXX"
+#' @export
+#'
+#' @family Initialisation
+indicators_to_update <- function() {
+  c("NI12", "NI13", "NI14", "NI15", "NI16", "NI19", "NI20")
+}
+
+#' List of the update years and quarters for indicators 12, 13 and 20
+#'
+#' @return A list of two vectors: \describe{
+#' \item{years}{A vector of financial years in "20XX/YY" format}
+#' \item{quarters}{A vector of financial quarters in "20XX/YY QZ" format}}
+#'
+#' @export
+#'
+#' @family Initialisation
+slf_indicator_update_periods <- function() {
+  periods <- list(
+    years = c("2020/21", "2021/22", "2022/23"),
+    quarters = c("2020/21 Q1", "2020/21 Q2", "2020/21 Q3", "2020/21 Q4",
+                 "2021/22 Q1", "2021/22 Q2", "2021/22 Q3", "2021/22 Q4",
+                 "2022/23 Q1", "2022/23 Q2", "2022/23 Q3")
+  )
+}
