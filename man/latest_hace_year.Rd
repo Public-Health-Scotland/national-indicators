@@ -14,7 +14,9 @@ Get the date of the latest HACE year
 }
 \seealso{
 Other Initialisation: 
+\code{\link{indicators_to_update}()},
 \code{\link{latest_update}()},
-\code{\link{previous_update}()}
+\code{\link{previous_update}()},
+\code{\link{slf_indicator_update_periods}()}
 }
 \concept{Initialisation}

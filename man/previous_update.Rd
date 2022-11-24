@@ -14,7 +14,9 @@ Get the date of the previous update, e.g 'Apr-2022'
 }
 \seealso{
 Other Initialisation: 
+\code{\link{indicators_to_update}()},
 \code{\link{latest_hace_year}()},
-\code{\link{latest_update}()}
+\code{\link{latest_update}()},
+\code{\link{slf_indicator_update_periods}()}
 }
 \concept{Initialisation}
