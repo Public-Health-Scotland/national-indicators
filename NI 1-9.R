@@ -55,15 +55,15 @@ one_to_nine <- bind_rows(raw_data_loc, raw_data_hscp) %>%
   mutate(
     indicator = case_when(
       # Find indicator based on content of question, as the question numbers may change in the future
-      str_detect(description_2022, "In general,") == TRUE ~ "NI1",
-      str_detect(description_2022, "independently") == TRUE ~ "NI2",
-      str_detect(description_2022, "had a say") == TRUE ~ "NI3",
-      str_detect(description_2022, "coordinated") == TRUE ~ "NI4",
-      str_detect(description_2022, "exclude") == TRUE ~ "NI5",
-      str_detect(description_2022, "GP") == TRUE ~ "NI6",
-      str_detect(description_2022, "maintained") == TRUE ~ "NI7",
-      str_detect(description_2022, "continue") == TRUE ~ "NI8",
-      str_detect(description_2022, "safe") == TRUE ~ "NI9",
+      str_detect(description_2022, "In general,") ~ "NI1",
+      str_detect(description_2022, "independently") ~ "NI2",
+      str_detect(description_2022, "had a say") ~ "NI3",
+      str_detect(description_2022, "coordinated") ~ "NI4",
+      str_detect(description_2022, "exclude") ~ "NI5",
+      str_detect(description_2022, "GP") ~ "NI6",
+      str_detect(description_2022, "maintained") ~ "NI7",
+      str_detect(description_2022, "continue") ~ "NI8",
+      str_detect(description_2022, "safe") ~ "NI9",
       TRUE ~ "No"
     ),
     data = "Annual",
