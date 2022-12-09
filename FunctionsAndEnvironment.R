@@ -93,7 +93,7 @@ fin_year_month <- function(dataset, date_variable) {
       ~ month({{ date_variable }}) - 3
     )) %>%
     # Puts an 'M' in front of the month number and makes 'month' a string
-    mutate(month = paste("M", fin_month, sep = "")) %>%
+    mutate(month = paste0("M", fin_month)) %>%
     select(-fin_month)
   return(return_df)
 }
