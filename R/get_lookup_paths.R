@@ -162,7 +162,7 @@ find_latest_file <- function(directory, regexp, selection_method = "modification
 #' @return the Lookups directory path as a [fs::path]
 #' @export
 get_lookups_dir <- function() {
-  fs::path("/conf/linkage/output/lookups/Unicode")
+  fs::path("/", "conf", "linkage", "output", "lookups", "Unicode")
 }
 
 #' Scottish Postcode Directory File Path

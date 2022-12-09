@@ -3,7 +3,7 @@
 #' @return The path to the NI folder
 #' @export
 get_ni_dir <- function() {
-  ni_dir <- fs::path("/conf/irf/03-Integration-Indicators/01-Core-Suite")
+  ni_dir <- fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite")
   return(ni_dir)
 }
 

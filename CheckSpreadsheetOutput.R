@@ -2,8 +2,29 @@ library(readxl)
 library(scales)
 library(skimr)
 
-new_nis <- read_xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/Spreadsheet outputs/SMR-Indicators-MI-Spreadsheet-Output-September-2021.xlsx")
-old_nis <- read_xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/Spreadsheet outputs/SMR-Indicators-MI-Spreadsheet-Output-Jun21.xlsx")
+spreadsheet_output_dir <- fs::path(
+  "/",
+  "conf",
+  "irf",
+  "03-Integration-Indicators",
+  "01-Core-Suite",
+  "Spreadsheet outputs"
+)
+
+new_nis <-
+  read_xlsx(
+    fs::path(
+      spreadsheet_output_dir,
+      "SMR-Indicators-MI-Spreadsheet-Output-September-2021.xlsx"
+    )
+  )
+old_nis <-
+  read_xlsx(
+    fs::path(
+      spreadsheet_output_dir,
+      "SMR-Indicators-MI-Spreadsheet-Output-Jun21.xlsx"
+    )
+  )
 
 
 checks <- left_join(new_nis, old_nis,

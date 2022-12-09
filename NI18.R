@@ -7,7 +7,7 @@ answer <- readline(
 )
 
 if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from the new 'final' spreadsheet
-  data <- read_xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 18/MI_Copy_NI18.xlsx",
+  data <- read_xlsx(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "MI_Copy_NI18.xlsx"),
     sheet = "Data",
     guess_max = 12000
   ) %>%
@@ -67,7 +67,7 @@ if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from
   data %>%
     # Set the correct length for matching to other SPSS files
     mutate(locality = str_pad(locality, 68, side = "right")) %>%
-    write_sav("/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 18/NI 18-Final.zsav", compress = TRUE)
+    write_sav(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "NI 18-Final.zsav", compress = "zsav"))
 } else if (str_detect(answer, regex("new", ignore_case = T)) == T) {
   raw_data <- read_excel(
     "NI 18/2022-04-26-balance-of-care.xlsm",

@@ -6,11 +6,11 @@ library(stringr)
 library(tidylog)
 library(janitor)
 
-cost_lookup_path <- path("Y2 - Derived Lookups/Cost Lookup.sav")
+cost_lookup_path <- path("Y2 - Derived Lookups", "Cost Lookup.sav")
 
 existing_costs <- read_sav(cost_lookup_path)
 
-new_costs <- read_excel(path("Z1 - Data Archive/Indicator20Totals_Apr22.xlsx")) %>%
+new_costs <- read_excel(path("Z1 - Data Archive", "Indicator20Totals_Apr22.xlsx")) %>%
   clean_names()
 
 # Rename variables

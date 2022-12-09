@@ -54,15 +54,27 @@ excluded_locations <- c(
 # Returns a lookup with simd, locality, datazone based on postcode
 # For use with NI15
 big_lookup <- function() {
-  simd <- read_sav("/conf/linkage/output/lookups/Unicode/Deprivation/postcode_2022_1_simd2020v2.zsav") %>%
-    select(pc7, simd2020v2_sc_decile, simd2020v2_sc_quintile, simd2020v2tp15)
-  postcode <- read_sav("/conf/hscdiip/SLF_Extracts/Lookups/Scottish_Postcode_Directory_2022_1.zsav") %>%
-    clean_names() %>%
-    select(pc7, hb2018, hscp2018, ca2018, `datazone2011` = data_zone2011)
-  locality <- read_rds("/conf/linkage/output/lookups/Unicode/Geography/HSCP Locality/HSCP Localities_DZ11_Lookup_20200825.rds") %>%
-    select(datazone2011, datazone2011name, `locality` = hscp_locality)
+  lookup_dir <- fs::path("/", "conf", "linkage", "output", "lookups", "Unicode")
 
-  big_lookup <- left_join(postcode, simd, by = "pc7") %>% left_join(., locality, by = "datazone2011")
+  simd <- read_sav(
+    fs::path(lookup_dir, "Deprivation", "postcode_2022_1_simd2020v2.zsav")
+  ) %>%
+    select("pc7", "simd2020v2_sc_decile", "simd2020v2_sc_quintile", "simd2020v2tp15")
+
+  postcode <- read_sav(
+    fs::path("/", "conf", "hscdiip", "SLF_Extracts", "Lookups", "Scottish_Postcode_Directory_2022_1.zsav")
+  ) %>%
+    clean_names() %>%
+    select("pc7", "hb2018", "hscp2018", "ca2018", datazone2011 = "data_zone2011")
+
+  locality <- read_rds(
+    fs::path(lookup_dir, "Geography", "HSCP Locality", "HSCP Localities_DZ11_Lookup_20200825.rds")
+  ) %>%
+    select("datazone2011", "datazone2011name", locality = "hscp_locality")
+
+  big_lookup <- postcode %>%
+    left_join(simd, by = "pc7") %>%
+    left_join(locality, by = "datazone2011")
 
   return(big_lookup)
 }
@@ -110,7 +122,7 @@ to_fin_year <- function(df) {
 
 # Populations ----
 get_loc_pops <- function(est_years) {
-  dz_pops <- read_rds(glue("/conf/linkage/output/lookups/Unicode/Populations/Estimates/DataZone2011_pop_est_{est_years}.rds")) %>%
+  dz_pops <- readr::read_rds(fs::path("/", "conf", "linkage", "output", "lookups", "Unicode", "Populations", "Estimates", glue::glue("DataZone2011_pop_est_{est_years}.rds"))) %>%
     filter(year >= 2013) %>%
     mutate(
       over18_pop = rowSums(across(age18:age90plus)),
