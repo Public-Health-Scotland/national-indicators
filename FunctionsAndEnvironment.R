@@ -32,10 +32,10 @@ ni_columns <- c()
 # For NI 15, list of ICD-10 codes for external causes of death
 external_cause_codes <- purrr::reduce(
   list(
-    glue("V0{as.character(c(1:9))}"), glue("V{as.character(c(10:99))}"),
-    glue("W0{as.character(c(0:9))}"), glue("W{as.character(c(10:99))}"),
-    glue("X0{as.character(c(0:9))}"), glue("X{as.character(c(10:99))}"),
-    glue("Y0{as.character(c(0:9))}"), glue("Y{as.character(c(10:84))}")
+    glue("V0{1:9}"), glue("V{10:99}"),
+    glue("W0{0:9}"), glue("W{10:99}"),
+    glue("X0{0:9}"), glue("X{10:99}"),
+    glue("Y0{0:9}"), glue("Y{10:84}")
   ),
   union
 )
