@@ -4,7 +4,7 @@
 answer <- readline(prompt =
                      "Do you want to pull old data, or get new data? Valid answers: 'Old', 'New': ")
 
-if (str_detect(answer, regex("old", ignore_case = T)) == T)
+if (str_detect(answer, regex("old", ignore_case = TRUE)))
   {# Read the data from the new 'final' spreadsheet
     data <- read_xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 18/MI_Copy_NI18.xlsx",
       sheet = "Data",
