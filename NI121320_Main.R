@@ -70,8 +70,8 @@ ni12_13_20 <- function(year_to_run) {
   admissions <- dates %>%
     # Recode Month here to match on to bed days and costs
     tidylog::mutate(month = stringr::str_c("M", as.character((lubridate::month(admission_date) - 3) %% 12))) %>%
-    tidylog::mutate(month = if_else(month == "M0", "M12", month)) %>%
-    tidylog::left_join(., get_locality_lookup()) %>%
+    tidylog::mutate(month = dplyr::if_else(month == "M0", "M12", month)) %>%
+    tidylog::left_join(get_locality_lookup()) %>%
     tidylog::group_by(lca, ca2019name, hscp_locality, month) %>%
     tidylog::summarise(admissions = sum(admission_record)) %>%
     tidylog::ungroup()
@@ -126,8 +126,11 @@ ni12_13_20 <- function(year_to_run) {
     tidylog::mutate(year = financial_year) %>%
     tidylog::rename(partnership = ca2019name, locality = hscp_locality)
 
-  ni_values <- tidylog::left_join(all_groups, get_loc_pops(), by = c("year", "partnership", "locality")) %>%
-    tidylog::left_join(., readr::read_rds("Z2 - R Code/Cost Lookup BM.rds") %>% tidylog::filter(year == financial_year),
+  ni_values <- all_groups %>%
+    tidylog::left_join(get_loc_pops(), by = c("year", "partnership", "locality")) %>%
+    tidylog::left_join(
+      readr::read_rds(fs::path("Z2 - R Code", "Cost Lookup BM.rds")) %>%
+        tidylog::filter(year == financial_year),
       by = c("year", "partnership")
     ) %>%
     tidylog::mutate(

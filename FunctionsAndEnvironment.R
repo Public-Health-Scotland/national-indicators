@@ -24,9 +24,12 @@ library(dbplyr) # For reading SMRA
 
 # Get the current month in 'MMM-YY' format, for appending save outs
 update_month <- str_c(month.abb[month(Sys.Date())], "-", year(Sys.Date()))
+
 last_update <- ""
+
 # General use - column names that every indicator dataset follows
 ni_columns <- c()
+
 # For NI 15, list of ICD-10 codes for external causes of death
 external_cause_codes <- purrr::reduce(
   list(
@@ -38,13 +41,37 @@ external_cause_codes <- purrr::reduce(
   union
 )
 # Codes representing falls
-falls_codes <- union(glue("W0{as.character(c(0:9))}"), glue("W{as.character(c(10:19))}"))
+falls_codes <- union(
+  glue("W0{as.character(c(0:9))}"),
+  glue("W{as.character(c(10:19))}")
+)
+
 excluded_codes <- generics::setdiff(external_cause_codes, falls_codes)
+
 # Frr NI 15, excluded locations
 excluded_locations <- c(
-  "A240V", "F821V", "G105V", "G518V", "G203V", "G315V", "G424V", "G541V", "G557V", "H239V",
-  "L112V", "L213V", "L215V", "L330V", "L365V", "N465R", "N498V", "S312R", "S327V", "T315S",
-  "T337V", "Y121V"
+  "A240V",
+  "F821V",
+  "G105V",
+  "G518V",
+  "G203V",
+  "G315V",
+  "G424V",
+  "G541V",
+  "G557V",
+  "H239V",
+  "L112V",
+  "L213V",
+  "L215V",
+  "L330V",
+  "L365V",
+  "N465R",
+  "N498V",
+  "S312R",
+  "S327V",
+  "T315S",
+  "T337V",
+  "Y121V"
 )
 
 # Geography Lookups ----
@@ -262,7 +289,7 @@ create_monthly_beddays <- function(data, year,
   data <- data %>%
     mutate(month = str_c("M", as.character((match(month, str_to_lower(month.abb)) - 3) %% 12))) %>%
     mutate(month = if_else(month == "M0", "M12", month)) %>%
-    left_join(., get_locality_lookup()) %>%
+    left_join(get_locality_lookup()) %>%
     # Aggregate to get monthly totals at locality level
     group_by(lca, ca2019name, hscp_locality, month) %>%
     summarise(across(c("beddays", "cost"), sum, na.rm = TRUE),

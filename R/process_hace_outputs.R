@@ -37,7 +37,6 @@ process_hace_outputs <- function(finyear, archive = TRUE, write_to_disk = TRUE) 
     janitor::clean_names() %>%
     # Column is formatted "hscp_name HSCP - locality_name" so we want to split those
     dplyr::bind_cols(
-      .,
       reshape2::colsplit(.$locality_name,
         pattern = " - ",
         names = c("partnership", "locality")
