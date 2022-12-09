@@ -7,11 +7,13 @@
 #' @export
 add_clacks_and_stirling <- function(data, council_variable) {
   return_data <- data %>%
-    dplyr::mutate(temp_part =
-                    dplyr::if_else({{ council_variable }} %in% c("Clackmannanshire", "Stirling"),
-      "Clackmannanshire & Stirling",
-      NA_character_
-    )) %>%
+    dplyr::mutate(
+      temp_part =
+        dplyr::if_else({{ council_variable }} %in% c("Clackmannanshire", "Stirling"),
+          "Clackmannanshire & Stirling",
+          NA_character_
+        )
+    ) %>%
     tidyr::pivot_longer(
       cols = c(partnership, temp_part),
       values_to = "partnership",

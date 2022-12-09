@@ -169,22 +169,23 @@ ni12_13_20 <- function(year_to_run) {
 ni_final_monthly <- list(
   ni12_13_20("1920"),
   ni12_13_20("2021"),
-  ni12_13_20("2122"))
+  ni12_13_20("2122")
+)
 
 ni_final_quarterly <- ni_final_monthly %>%
   purrr::map_dfr(~
-  mutate(.x, data = case_when(
-    data %in% c("M1", "M2", "M3") ~ "Q1",
-    data %in% c("M4", "M5", "M6") ~ "Q2",
-    data %in% c("M7", "M8", "M9") ~ "Q3",
-    data %in% c("M10", "M11", "M12") ~ "Q4",
-    data == "Annual" ~ "Annual"
-  )) %>%
-    group_by(indicator, year, data, partnership, locality) %>%
-    summarise(
-      across(c(value, scotland, numerator), sum),
-      across(denominator, max)
-    ))
+    mutate(.x, data = case_when(
+      data %in% c("M1", "M2", "M3") ~ "Q1",
+      data %in% c("M4", "M5", "M6") ~ "Q2",
+      data %in% c("M7", "M8", "M9") ~ "Q3",
+      data %in% c("M10", "M11", "M12") ~ "Q4",
+      data == "Annual" ~ "Annual"
+    )) %>%
+      group_by(indicator, year, data, partnership, locality) %>%
+      summarise(
+        across(c(value, scotland, numerator), sum),
+        across(denominator, max)
+      ))
 ni_final_monthly <- bind_rows(ni_final_monthly)
 write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly.rds", compress = "gz")
 write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly.rds", compress = "gz")

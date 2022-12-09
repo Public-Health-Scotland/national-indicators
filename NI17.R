@@ -32,4 +32,3 @@ ni17_final <- left_join(
     select(year, `scotland` = value),
   by = "year"
 )
-

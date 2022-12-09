@@ -70,11 +70,12 @@ big_lookup <- function() {
 # Standard LCA names
 standardise_partnerships <- function(df, partnership) {
   return_df <- df %>%
-    mutate(across({{partnership}}, ~ .x %>% str_replace("^City of Edinburgh$", "Edinburgh") %>%
-                str_replace("Edinburgh, City of", "Edinburgh") %>%
-                str_replace("Na h-Eileanan Siar", "Western Isles") %>%
-                str_replace("&", "and") %>%
-                str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
+    mutate(across({{ partnership }}, ~ .x %>%
+      str_replace("^City of Edinburgh$", "Edinburgh") %>%
+      str_replace("Edinburgh, City of", "Edinburgh") %>%
+      str_replace("Na h-Eileanan Siar", "Western Isles") %>%
+      str_replace("&", "and") %>%
+      str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
   return(return_df)
 }
 
@@ -183,7 +184,6 @@ create_monthly_beddays <- function(data, year,
                                    admission_date, discharge_date,
                                    include_costs = FALSE, count_last = TRUE,
                                    pivot_longer = FALSE) {
-
   # Create a 'stay interval' from the episode dates
   data <- data %>%
     dplyr::mutate(stay_interval = lubridate::interval(
@@ -263,4 +263,3 @@ create_monthly_beddays <- function(data, year,
 
   return(data)
 }
-

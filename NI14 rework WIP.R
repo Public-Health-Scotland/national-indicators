@@ -18,15 +18,18 @@ smra_and_gro_extract <-
     stay = !discharged_dead_both,
     # Extract the financial year and financial month
     fin_month = calculate_financial_month(cis_disdate),
-    year = phsmethods::extract_fin_year(cis_disdate)) %>%
+    year = phsmethods::extract_fin_year(cis_disdate)
+  ) %>%
   # Match on postcodes to get datazone, and then use datazone to match locality
   dplyr::left_join(.,
-                   readr::read_rds(get_spd_path()),
-                   by = c("postcode" = "pc7")) %>%
+    readr::read_rds(get_spd_path()),
+    by = c("postcode" = "pc7")
+  ) %>%
   dplyr::left_join(.,
-                   readr::read_rds(get_locality_path()) %>%
-                     dplyr::select(datazone2011, hscp_locality),
-                   by = "datazone2011") %>%
+    readr::read_rds(get_locality_path()) %>%
+      dplyr::select(datazone2011, hscp_locality),
+    by = "datazone2011"
+  ) %>%
   # Aggregate to locality-level at the lowest
   dplyr::select(year, fin_month, ca2018, hscp_locality, datazone2011, flag28, stay) %>%
   dtplyr::lazy_dt() %>%
@@ -41,37 +44,37 @@ totals_list <- smra_and_gro_extract %>%
   list(
     # Annual totals for each financial year
     annual = dplyr::mutate(.,
-                    fin_month = "Annual"
+      fin_month = "Annual"
     ),
     # 'All localities' groupings
     all_loc = dplyr::mutate(.,
-                     hscp_locality = "All"
+      hscp_locality = "All"
     ),
     # Annual and all localities
     all_all = dplyr::mutate(.,
-                     fin_month = "Annual",
-                     hscp_locality = "All"
+      fin_month = "Annual",
+      hscp_locality = "All"
     ),
     # Scotland totals
     scotland = dplyr::mutate(.,
-                      partnership = "Scotland",
-                      ca2018 = "Scotland",
-                      hscp_locality = "All"
+      partnership = "Scotland",
+      ca2018 = "Scotland",
+      hscp_locality = "All"
     ),
     # Scotland annual totals
     scot_annual = dplyr::mutate(.,
-                         partnership = "Scotland",
-                         ca2018 = "Scotland",
-                         hscp_locality = "All",
-                         fin_month = "Annual"
+      partnership = "Scotland",
+      ca2018 = "Scotland",
+      hscp_locality = "All",
+      fin_month = "Annual"
     )
   )
 
 # Apply the same aggregate to each member of the list
 ni14_final <- totals_list %>%
   purrr::map_dfr(~ dplyr::group_by(.x, year, fin_month, partnership, ca2018, hscp_locality) %>%
-            dplyr::summarise(across(flag28:stay, sum)) %>%
-            dplyr::ungroup())
+    dplyr::summarise(across(flag28:stay, sum)) %>%
+    dplyr::ungroup())
 
 ni14_cs <- add_clacks_and_stirling(ni14_final, partnership)
 

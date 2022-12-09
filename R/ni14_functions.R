@@ -14,14 +14,15 @@ add_readmission_flag <- function(data) {
     dplyr::mutate(
       # If link_no is the same as the next link_no, calculate how many days there
       # are between the next admission and the last discharge
-      days_between_stays = lubridate::interval(.data$cis_disdate, lead(.data$cis_admdate))/lubridate::ddays(1),
+      days_between_stays = lubridate::interval(.data$cis_disdate, lead(.data$cis_admdate)) / lubridate::ddays(1),
       # Make a flag, emerg_adm, for admission types 20, 21, 22, and 30-39.
       emerg_adm = .data$admission_type %in% c(20:22, 30:39),
       # If the next admission was an emergency
       # and it was less than 28 days later, assign TRUE to flag28
       flag28 = dplyr::between(.data$days_between_stays, 0, 28) & dplyr::lead(.data$emerg_adm),
       # Flag admissions where a patient died, as these are excluded
-      dplyr::across("flag28", ~ replace(., is.na(.), FALSE)))
+      dplyr::across("flag28", ~ replace(., is.na(.), FALSE))
+    )
   return(return_data)
 }
 
@@ -34,4 +35,3 @@ add_smra_death_flag <- function(discharge_type) {
   discharged_dead <- discharge_type %/% 10 == 4
   return(discharged_dead)
 }
-

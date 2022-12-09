@@ -5,9 +5,9 @@
 #' @export
 connect_to_smra <- function() {
   smra_connect <- odbc::dbConnect(odbc::odbc(),
-            dsn = "SMRA",
-            uid = "", #.rs.askForPassword("SMRA Username:"),
-            pwd = "" #.rs.askForPassword("SMRA Password:")
+    dsn = "SMRA",
+    uid = "", # .rs.askForPassword("SMRA Username:"),
+    pwd = "" # .rs.askForPassword("SMRA Password:")
   )
   return(smra_connect)
 }
@@ -37,5 +37,3 @@ ni14_gro_query <- function() {
   WHERE (DATE_OF_DEATH >= '01-APR-2013')
   GROUP BY LINK_NO"
 }
-
-

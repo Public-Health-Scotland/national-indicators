@@ -7,12 +7,12 @@
 #' @return A vector of financial months
 #' @export
 calculate_financial_month <- function(date_variable) {
-    fin_month <- dplyr::case_when(
-      dplyr::between(lubridate::month(date_variable), 1, 3) ~
-        glue::glue("M{lubridate::month(date_variable) + 9}"),
-      dplyr::between(lubridate::month(date_variable), 4, 12) ~
-        glue::glue("M{lubridate::month(date_variable) - 3}")
-    )
+  fin_month <- dplyr::case_when(
+    dplyr::between(lubridate::month(date_variable), 1, 3) ~
+      glue::glue("M{lubridate::month(date_variable) + 9}"),
+    dplyr::between(lubridate::month(date_variable), 4, 12) ~
+      glue::glue("M{lubridate::month(date_variable) - 3}")
+  )
   return(fin_month)
 }
 

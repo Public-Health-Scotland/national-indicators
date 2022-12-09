@@ -48,19 +48,19 @@ get_file_path <-
     } else if (!is.null(file_name_regexp)) {
       if (check_mode == "read") {
         file_path <- find_latest_file(directory,
-                                      regexp = file_name_regexp,
-                                      selection_method = selection_method
+          regexp = file_name_regexp,
+          selection_method = selection_method
         )
       } else {
         cli::cli_abort(c("{.arg check_mode = \"{check_mode}\"} can't be used to
                          find the latest file with {.arg file_name_regexp}",
-                         "v" = "Try {.arg check_mode = \"read\"}"
+          "v" = "Try {.arg check_mode = \"read\"}"
         ))
-                         }
-      } else {
-        cli::cli_abort("You must specify a {.var file_name} or a regular expression
-                     to search for with {.var file_name_regexp}")
       }
+    } else {
+      cli::cli_abort("You must specify a {.var file_name} or a regular expression
+                     to search for with {.var file_name_regexp}")
+    }
 
     if (!is.null(ext)) {
       file_path <- fs::path_ext_set(file_path, ext)
@@ -68,7 +68,7 @@ get_file_path <-
 
     if (!fs::file_exists(file_path)) {
       if (is.null(create) && check_mode == "write" |
-          !is.null(create) && create == TRUE) {
+        !is.null(create) && create == TRUE) {
         # The file doesn't exist but we do want to create it
         fs::file_create(file_path)
         cli::cli_alert_info(

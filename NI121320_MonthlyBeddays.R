@@ -72,21 +72,23 @@ monthly_beddays_and_admissions <- function(data,
     bind_cols(map_dfc(month_intervals, function(month_interval) {
       # Use intersect to find the overlap between the month of interest
       # and the stay, then use time_length to measure the length in days
-      time_length(intersect(
-        # use int_shift to move the interval forward by one day
-        # This is so we count the last day (and not the first), which is
-        # the correct methodology
-        int_shift(interval(
-          data %>%
-            pull(admission_date),
-          data %>%
-            pull(discharge_date)
+      time_length(
+        intersect(
+          # use int_shift to move the interval forward by one day
+          # This is so we count the last day (and not the first), which is
+          # the correct methodology
+          int_shift(
+            interval(
+              data %>%
+                pull(admission_date),
+              data %>%
+                pull(discharge_date)
+            ),
+            by = days(1)
+          ),
+          month_interval
         ),
-        by = days(1)
-        ),
-        month_interval
-      ),
-      unit = "days"
+        unit = "days"
       )
     }))
 

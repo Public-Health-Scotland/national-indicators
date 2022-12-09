@@ -8,17 +8,18 @@
 #' @return The final, unfiltered, NI1-9 output
 #' @export
 process_hace_outputs <- function(finyear, archive = TRUE, write_to_disk = TRUE) {
-
   # Pull out data from a stable previous version
   older_data_tableau <- haven::read_sav(glue::glue("{get_ni_tableau_output_dir()}/NI Tableau Final-L3-{previous_update()}.sav")) %>%
     dplyr::filter(Indicator1 %in% c("NI1", "NI2", "NI3", "NI4", "NI5", "NI6", "NI7", "NI8", "NI9")) %>%
     dplyr::select(-LA_Code)
 
-  if (archive == TRUE){
-  # Archive old version
-  readr::write_rds(older_data_tableau,
-                   glue::glue("{get_ni_dir()}/Z1 - Data Archive/NI 1-9-Tableau-pre-{Sys.Date()}.rds"))
-    }
+  if (archive == TRUE) {
+    # Archive old version
+    readr::write_rds(
+      older_data_tableau,
+      glue::glue("{get_ni_dir()}/Z1 - Data Archive/NI 1-9-Tableau-pre-{Sys.Date()}.rds")
+    )
+  }
 
   # Read in data from two spreadsheets and wrangle
   # Get the HACE data at Partnership level
@@ -83,54 +84,69 @@ process_hace_outputs <- function(finyear, archive = TRUE, write_to_disk = TRUE) 
       numerator = NA,
       denominator = NA
     ) %>%
-    dplyr::select("year",
-                  "value",
-                  "partnership",
-                  "numerator",
-                  "locality",
-                  "indicator",
-                  "denominator",
-                  "data",
-                  "lower_ci",
-                  "upper_ci")
+    dplyr::select(
+      "year",
+      "value",
+      "partnership",
+      "numerator",
+      "locality",
+      "indicator",
+      "denominator",
+      "data",
+      "lower_ci",
+      "upper_ci"
+    )
 
   # Add Scotland totals as a column
   final <- dplyr::left_join(one_to_nine,
     one_to_nine %>% dplyr::filter(partnership == "Scotland") %>%
       dplyr::rename(scotland = value) %>%
-      dplyr::select("data",
-                    "indicator",
-                    "year",
-                    "scotland"),
+      dplyr::select(
+        "data",
+        "indicator",
+        "year",
+        "scotland"
+      ),
     by = c("year", "indicator", "data")
   ) %>%
-    dplyr::select("year",
-                  "value",
-                  "scotland",
-                  "partnership",
-                  "numerator",
-                  "locality",
-                  "indicator",
-                  "denominator",
-                  "data",
-                  "lower_ci",
-                  "upper_ci") %>%
-    magrittr::set_colnames(c("Year1", "Value", "Scotland", "Partnership1", "Numerator",
-                             "Locality", "Indicator1", "Denominator", "Data1", "LowerCI",
-                             "UpperCI"))
+    dplyr::select(
+      "year",
+      "value",
+      "scotland",
+      "partnership",
+      "numerator",
+      "locality",
+      "indicator",
+      "denominator",
+      "data",
+      "lower_ci",
+      "upper_ci"
+    ) %>%
+    magrittr::set_colnames(c(
+      "Year1", "Value", "Scotland", "Partnership1", "Numerator",
+      "Locality", "Indicator1", "Denominator", "Data1", "LowerCI",
+      "UpperCI"
+    ))
 
   final <- dplyr::bind_rows(final, older_data_tableau)
 
-  if (write_to_disk == TRUE){
-  # Final save outs
-  readr::write_rds(final,
-                   glue::glue("{get_ni_dir()}/NI 1-9/NI 1-9-All Data and Vars.rds"))
-  # No Scotland rows in Tableau output
-  readr::write_rds(final %>% filter(Partnership1 != "Scotland"),
-                   "{get_ni_dir}/NI 1-9/NI 1-9-Tableau-Format.rds")
-  # No individual localities in MI output
-  readr::write_rds(final %>% filter(Locality == "All"),
-                   "{get_ni_dir()}/NI 1-9/NI 1-9-MI-Format.rds")}
+  if (write_to_disk == TRUE) {
+    # Final save outs
+    readr::write_rds(
+      final,
+      glue::glue("{get_ni_dir()}/NI 1-9/NI 1-9-All Data and Vars.rds")
+    )
+    # No Scotland rows in Tableau output
+    readr::write_rds(
+      final %>% filter(Partnership1 != "Scotland"),
+      "{get_ni_dir}/NI 1-9/NI 1-9-Tableau-Format.rds"
+    )
+    # No individual localities in MI output
+    readr::write_rds(
+      final %>% filter(Locality == "All"),
+      "{get_ni_dir()}/NI 1-9/NI 1-9-MI-Format.rds"
+    )
+  }
 
   return(final)
 }
