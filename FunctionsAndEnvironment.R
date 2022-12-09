@@ -105,7 +105,7 @@ fin_year_month <- function(dataset, date_variable) {
     )) %>%
     # Puts an 'M' in front of the month number and makes 'month' a string
     mutate(month = paste0("M", fin_month)) %>%
-    select(-fin_month)
+    select(-"fin_month")
   return(return_df)
 }
 
@@ -114,7 +114,7 @@ to_fin_year <- function(df) {
     mutate(last_two_digits = substr(year, 3, 4)) %>%
     mutate(next_year = as.numeric(last_two_digits) + 1) %>%
     mutate(year = str_c("20", last_two_digits, "/", next_year)) %>%
-    select(-last_two_digits, -next_year)
+    select(-"last_two_digits", -"next_year")
   return(return_df)
 }
 
@@ -123,25 +123,24 @@ get_loc_pops <- function(est_years) {
   dz_pops <- readr::read_rds(fs::path("/", "conf", "linkage", "output", "lookups", "Unicode", "Populations", "Estimates", glue::glue("DataZone2011_pop_est_{est_years}.rds"))) %>%
     filter(year >= 2013) %>%
     mutate(
-      over18_pop = rowSums(across(age18:age90plus)),
-      over65_pop = rowSums(across(age65:age90plus)),
-      over75_pop = rowSums(across(age75:age90plus))
+      over18_pop = rowSums(across("age18":"age90plus")),
+      over65_pop = rowSums(across("age65":"age90plus")),
+      over75_pop = rowSums(across("age75":"age90plus"))
     ) %>%
-    select(-c(age0:age90plus)) %>%
+    select(-c("age0":"age90plus")) %>%
     group_by(year, datazone2011) %>%
-    summarise(across(over18_pop:over75_pop, sum), .groups = "keep")
+    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   temp_pc <- get_pc_lookup() %>%
-    select(ca2019name, datazone2011) %>%
+    select("ca2019name", "datazone2011") %>%
     group_by(datazone2011) %>%
     summarise(lca = first(ca2019name))
 
-  loc_pops <- left_join(dz_pops, temp_pc, by = "datazone2011") %>%
-    left_join(., get_locality_lookup(),
-      by = "datazone2011"
-    ) %>%
+  loc_pops <- dz_pops %>%
+    left_join(temp_pc, by = "datazone2011") %>%
+    left_join(get_locality_lookup(), by = "datazone2011") %>%
     group_by(year, lca, hscp_locality) %>%
-    summarise(across(over18_pop:over75_pop, sum), .groups = "keep")
+    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   loc_pops <- loc_pops %>%
     mutate(
@@ -153,8 +152,8 @@ get_loc_pops <- function(est_years) {
       values_to = "year",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
-    mutate(temp_part = if_else(lca == "Clackmannanshire" | lca == "Stirling",
+    select(-"name") %>%
+    mutate(temp_part = if_else(lca %in% c("Clackmannanshire", "Stirling"),
       "Clackmannanshire and Stirling",
       NA_character_
     )) %>%
@@ -163,14 +162,14 @@ get_loc_pops <- function(est_years) {
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     mutate(temp_loc = "All") %>%
     pivot_longer(
       cols = c(hscp_locality, temp_loc),
       values_to = "locality",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     mutate(temp_part = if_else(partnership == "Clackmannanshire and Stirling",
       NA_character_,
       "Scotland"
@@ -180,7 +179,7 @@ get_loc_pops <- function(est_years) {
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     filter(partnership != "Scotland" | locality == "All") %>%
     group_by(year, partnership, locality) %>%
     summarise(across(over18_pop:over75_pop, sum), .groups = "keep") %>%
