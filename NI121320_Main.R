@@ -21,8 +21,8 @@ ni12_13_20 <- function(year_to_run) {
       "yearstay", cost_names
     )
   ) %>%
-    # We only want the emergency admission records. 50B is an older code for GLS
-    tidylog::filter(recid %in% c("01B", "04B", "GLS", "50B")) %>%
+    # We only want the emergency admission records.
+    tidylog::filter(recid %in% c("01B", "04B", "GLS")) %>%
     # We only want over 18s, and the three locations are dental hospitals which we don't include
     tidylog::filter(anon_chi != "" & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")) %>%
     # Recode patient type 18 to Non-Elective and filter out non-emergency admissions
