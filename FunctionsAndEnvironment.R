@@ -6,7 +6,6 @@ library(tidyr) # Mainly for pivot commands
 library(haven) # For reading/writing .sav files
 library(readr) # Reading other files
 library(fs) # Tidy file paths
-library(odbc) # For connecting to SMR
 library(janitor) # Data cleaning
 library(magrittr) # For assignment pipe
 library(lubridate) # Handles dates easier
@@ -17,7 +16,6 @@ library(slfhelper) # Easy reading of Source Episode Files
 library(purrr) # For map functions over lists
 library(writexl) # Write excel
 library(readxl)
-library(tictoc) # Measure system time
 library(tidylog)
 library(reshape2)
 library(dbplyr) # For reading SMRA
