@@ -38,6 +38,6 @@ checks <- checks %>% mutate(
   valuediff = label_percent(accuracy = 0.01)((Rate_new - Rate_old) / Rate_old)
 )
 
-check_list <- checks %>% split(checks$Indicator)
+check_list <- checks %>% split(checks[["Indicator"]])
 
 check_list <- check_list %>% purrr::map(~ arrange(.x, valuediff))

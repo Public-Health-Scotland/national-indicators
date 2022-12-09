@@ -43,7 +43,7 @@ new_costs <-
       filter(year == "2019/20") %>%
       mutate(
         year = "2021/22",
-        acost = acost * (1.01)^2
+        acost = acost * (1.01)^2L
       )
   )
 
