@@ -9,7 +9,7 @@ ni12_13_20 <- function(year_to_run) {
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 1, 2), "-04-01")),
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 3, 4), "-03-31"))
   )
-  financial_year <- stringr::str_c("20", stringr::str_sub(year_to_run, 1, 2), "/", stringr::str_sub(year_to_run, -2))
+  financial_year <- glue::glue("20{stringr::str_sub(year_to_run, 1, 2)}/{stringr::str_sub(year_to_run, -2)}")
 
   # Read in SLF episode file
   slf <- slfhelper::read_slf_episode(
