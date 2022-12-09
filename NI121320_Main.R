@@ -26,7 +26,7 @@ ni12_13_20 <- function(year_to_run) {
     # We only want over 18s, and the three locations are dental hospitals which we don't include
     tidylog::filter(anon_chi != "" & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")) %>%
     # Recode patient type 18 to Non-Elective and filter out non-emergency admissions
-    tidylog::mutate(cij_pattype = if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
+    tidylog::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
     tidylog::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
     # Multiply all costs by 1.01^uplift
     # mutate(across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
@@ -95,7 +95,7 @@ ni12_13_20 <- function(year_to_run) {
     ) %>%
     tidylog::select(-name) %>%
     # Clacks & Stirling totals
-    tidylog::mutate(temp_part = if_else(ca2019name == "Clackmannanshire" | ca2019name == "Stirling",
+    tidylog::mutate(temp_part = dplyr::if_else(ca2019name %in% c("Clackmannanshire", "Stirling"),
       "Clackmannanshire and Stirling", NA_character_
     )) %>%
     tidylog::pivot_longer(
@@ -151,7 +151,7 @@ ni12_13_20 <- function(year_to_run) {
       NI20_denominator = total_cost
     ) %>%
     tidylog::pivot_longer(
-      cols = starts_with("NI"),
+      cols = tidyselect::starts_with("NI"),
       names_to = c("indicator", ".value"),
       names_pattern = "(NI\\d{2})_(\\w+)"
     )
