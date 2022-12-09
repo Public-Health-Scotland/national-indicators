@@ -91,9 +91,9 @@ final <- bind_rows(final, older_data_tableau)
 rm(older_data_tableau)
 
 # Final save outs
-write_sav(all_data_and_vars, "NI 1-9/NI 1-9-All Data and Vars.zsav", compress = TRUE)
+write_sav(all_data_and_vars, "NI 1-9/NI 1-9-All Data and Vars.zsav", compress = "zsav")
 # No Scotland rows in Tableau output
-write_sav(final %>% filter(Partnership1 != "Scotland"), "NI 1-9/NI 1-9-Tableau-Format.zsav")
+write_sav(final %>% filter(Partnership1 != "Scotland"), "NI 1-9/NI 1-9-Tableau-Format.zsav", compress = "zsav")
 # No individual localities in MI output
 write_xlsx(final %>% filter(Locality == "All"), "NI 1-9/NI 1-9-MI-Format.xlsx")
 
