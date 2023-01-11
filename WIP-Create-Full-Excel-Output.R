@@ -4,13 +4,25 @@ previous_data <- openxlsx::read.xlsx("/conf/irf/03-Integration-Indicators/01-Cor
                                      sheet = "Data") %>%
   # Strip out the data being replaced
   dplyr::filter(!(Indicator %in% c("NI14", "NI15", "NI16", "NI19"))) %>%
-  dplyr::filter(!(Indicator %in% c("NI12", "NI13") & Year %in% c("2020/21", "2021/22", "2022/23")))
+  dplyr::filter(!(Indicator %in% c("NI12", "NI13") &
+                    Year %in% c("2018/19", "2019/20", "2020/21", "2021/22", "2022/23",
+                                "2019", "2020", "2021"))) %>%
+  dplyr::filter(!(Indicator %in% c("NI20") &
+                    Year %in% c("2018/19", "2019/20", "2019")))
+
+prev_data_full <- previous_data <- openxlsx::read.xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/Spreadsheet outputs/Core_Suite_Integration_Indicators_Management_Information_December2022 (1).xlsx",
+                                                       sheet = "Data")
 
 # Get new file
 
 new_data <- openxlsx::read.xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/Spreadsheet outputs/SMR-Indicators-MI-Spreadsheet-Output-Dec-2022.xlsx") %>%
   # NI20 isn't changing
-  dplyr::filter(!(Indicator %in% c("NI20"))) %>%
+  dplyr::filter(!(Indicator %in% c("NI20") & year %in% c("2020/21", "2021/22", "2022/23",
+                                                         "2020", "2021", "2022"))) %>%
+  dplyr::filter(!(Indicator == "NI19" & stringr::str_length(year) == 4)) %>%
+  dplyr::filter(!(Indicator %in% c("NI12", "NI13", "NI14", "NI15", "NI16") &
+                    Time_Period == "Annual" &
+                    year == "2022/23")) %>%
   # Rename in line with Excel template
   dplyr::rename(`Time.Period` = Time_Period,
                 Year = year,
@@ -48,3 +60,5 @@ checks <- dplyr::left_join(new_data, prev_data_full,
   dplyr::arrange(dplyr::desc(Rate_proportion))
 
 openxlsx::write.xlsx(checks, fs::path(get_ni_dir(), "Checks-Dec-2022.xlsx"))
+
+
