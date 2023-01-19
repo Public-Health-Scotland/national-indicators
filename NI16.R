@@ -47,12 +47,13 @@ ni16 <- left_join(ni16_extract,
   by = c("postcode" = "pc7")
 ) %>%
   filter(!datazone2011 == "") %>%
-  left_join(get_locality_lookup(c(
-    "datazone2011",
-    "ca2019name",
-    "hscp_locality"
-  )),
-  by = "datazone2011"
+  left_join(
+    get_locality_lookup(c(
+      "datazone2011",
+      "ca2019name",
+      "hscp_locality"
+    )),
+    by = "datazone2011"
   ) %>%
   rename(partnership = ca2019name, locality = hscp_locality)
 

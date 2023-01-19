@@ -6,7 +6,6 @@ library(tidyr) # Mainly for pivot commands
 library(haven) # For reading/writing .sav files
 library(readr) # Reading other files
 library(fs) # Tidy file paths
-library(odbc) # For connecting to SMR
 library(janitor) # Data cleaning
 library(magrittr) # For assignment pipe
 library(lubridate) # Handles dates easier
@@ -17,7 +16,6 @@ library(slfhelper) # Easy reading of Source Episode Files
 library(purrr) # For map functions over lists
 library(writexl) # Write excel
 library(readxl)
-library(tictoc) # Measure system time
 library(tidylog)
 library(reshape2)
 library(dbplyr) # For reading SMRA
@@ -26,27 +24,54 @@ library(dbplyr) # For reading SMRA
 
 # Get the current month in 'MMM-YY' format, for appending save outs
 update_month <- str_c(month.abb[month(Sys.Date())], "-", year(Sys.Date()))
+
 last_update <- ""
+
 # General use - column names that every indicator dataset follows
 ni_columns <- c()
+
 # For NI 15, list of ICD-10 codes for external causes of death
 external_cause_codes <- purrr::reduce(
   list(
-    glue("V0{as.character(c(1:9))}"), glue("V{as.character(c(10:99))}"),
-    glue("W0{as.character(c(0:9))}"), glue("W{as.character(c(10:99))}"),
-    glue("X0{as.character(c(0:9))}"), glue("X{as.character(c(10:99))}"),
-    glue("Y0{as.character(c(0:9))}"), glue("Y{as.character(c(10:84))}")
+    glue("V0{1:9}"), glue("V{10:99}"),
+    glue("W0{0:9}"), glue("W{10:99}"),
+    glue("X0{0:9}"), glue("X{10:99}"),
+    glue("Y0{0:9}"), glue("Y{10:84}")
   ),
   union
 )
 # Codes representing falls
-falls_codes <- union(glue("W0{as.character(c(0:9))}"), glue("W{as.character(c(10:19))}"))
+falls_codes <- union(
+  glue("W0{as.character(c(0:9))}"),
+  glue("W{as.character(c(10:19))}")
+)
+
 excluded_codes <- generics::setdiff(external_cause_codes, falls_codes)
+
 # Frr NI 15, excluded locations
 excluded_locations <- c(
-  "A240V", "F821V", "G105V", "G518V", "G203V", "G315V", "G424V", "G541V", "G557V", "H239V",
-  "L112V", "L213V", "L215V", "L330V", "L365V", "N465R", "N498V", "S312R", "S327V", "T315S",
-  "T337V", "Y121V"
+  "A240V",
+  "F821V",
+  "G105V",
+  "G518V",
+  "G203V",
+  "G315V",
+  "G424V",
+  "G541V",
+  "G557V",
+  "H239V",
+  "L112V",
+  "L213V",
+  "L215V",
+  "L330V",
+  "L365V",
+  "N465R",
+  "N498V",
+  "S312R",
+  "S327V",
+  "T315S",
+  "T337V",
+  "Y121V"
 )
 
 # Geography Lookups ----
@@ -54,15 +79,27 @@ excluded_locations <- c(
 # Returns a lookup with simd, locality, datazone based on postcode
 # For use with NI15
 big_lookup <- function() {
-  simd <- read_sav("/conf/linkage/output/lookups/Unicode/Deprivation/postcode_2022_1_simd2020v2.zsav") %>%
-    select(pc7, simd2020v2_sc_decile, simd2020v2_sc_quintile, simd2020v2tp15)
-  postcode <- read_sav("/conf/hscdiip/SLF_Extracts/Lookups/Scottish_Postcode_Directory_2022_1.zsav") %>%
-    clean_names() %>%
-    select(pc7, hb2018, hscp2018, ca2018, `datazone2011` = data_zone2011)
-  locality <- read_rds("/conf/linkage/output/lookups/Unicode/Geography/HSCP Locality/HSCP Localities_DZ11_Lookup_20200825.rds") %>%
-    select(datazone2011, datazone2011name, `locality` = hscp_locality)
+  lookup_dir <- fs::path("/", "conf", "linkage", "output", "lookups", "Unicode")
 
-  big_lookup <- left_join(postcode, simd, by = "pc7") %>% left_join(., locality, by = "datazone2011")
+  simd <- read_sav(
+    fs::path(lookup_dir, "Deprivation", "postcode_2022_1_simd2020v2.zsav")
+  ) %>%
+    select("pc7", "simd2020v2_sc_decile", "simd2020v2_sc_quintile", "simd2020v2tp15")
+
+  postcode <- read_sav(
+    fs::path("/", "conf", "hscdiip", "SLF_Extracts", "Lookups", "Scottish_Postcode_Directory_2022_1.zsav")
+  ) %>%
+    clean_names() %>%
+    select("pc7", "hb2018", "hscp2018", "ca2018", datazone2011 = "data_zone2011")
+
+  locality <- read_rds(
+    fs::path(lookup_dir, "Geography", "HSCP Locality", "HSCP Localities_DZ11_Lookup_20200825.rds")
+  ) %>%
+    select("datazone2011", "datazone2011name", locality = "hscp_locality")
+
+  big_lookup <- postcode %>%
+    left_join(simd, by = "pc7") %>%
+    left_join(locality, by = "datazone2011")
 
   return(big_lookup)
 }
@@ -70,11 +107,12 @@ big_lookup <- function() {
 # Standard LCA names
 standardise_partnerships <- function(df, partnership) {
   return_df <- df %>%
-    mutate(across({{partnership}}, ~ .x %>% str_replace("^City of Edinburgh$", "Edinburgh") %>%
-                str_replace("Edinburgh, City of", "Edinburgh") %>%
-                str_replace("Na h-Eileanan Siar", "Western Isles") %>%
-                str_replace("&", "and") %>%
-                str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
+    mutate(across({{ partnership }}, ~ .x %>%
+      str_replace("^City of Edinburgh$", "Edinburgh") %>%
+      str_replace("Edinburgh, City of", "Edinburgh") %>%
+      str_replace("Na h-Eileanan Siar", "Western Isles") %>%
+      str_replace("&", "and") %>%
+      str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
   return(return_df)
 }
 
@@ -93,8 +131,8 @@ fin_year_month <- function(dataset, date_variable) {
       ~ month({{ date_variable }}) - 3
     )) %>%
     # Puts an 'M' in front of the month number and makes 'month' a string
-    mutate(month = paste("M", fin_month, sep = "")) %>%
-    select(-fin_month)
+    mutate(month = paste0("M", fin_month)) %>%
+    select(-"fin_month")
   return(return_df)
 }
 
@@ -103,34 +141,33 @@ to_fin_year <- function(df) {
     mutate(last_two_digits = substr(year, 3, 4)) %>%
     mutate(next_year = as.numeric(last_two_digits) + 1) %>%
     mutate(year = str_c("20", last_two_digits, "/", next_year)) %>%
-    select(-last_two_digits, -next_year)
+    select(-"last_two_digits", -"next_year")
   return(return_df)
 }
 
 # Populations ----
 get_loc_pops <- function(est_years) {
-  dz_pops <- read_rds(glue("/conf/linkage/output/lookups/Unicode/Populations/Estimates/DataZone2011_pop_est_{est_years}.rds")) %>%
+  dz_pops <- readr::read_rds(fs::path("/", "conf", "linkage", "output", "lookups", "Unicode", "Populations", "Estimates", glue::glue("DataZone2011_pop_est_{est_years}.rds"))) %>%
     filter(year >= 2013) %>%
     mutate(
-      over18_pop = rowSums(across(age18:age90plus)),
-      over65_pop = rowSums(across(age65:age90plus)),
-      over75_pop = rowSums(across(age75:age90plus))
+      over18_pop = rowSums(across("age18":"age90plus")),
+      over65_pop = rowSums(across("age65":"age90plus")),
+      over75_pop = rowSums(across("age75":"age90plus"))
     ) %>%
-    select(-c(age0:age90plus)) %>%
+    select(-c("age0":"age90plus")) %>%
     group_by(year, datazone2011) %>%
-    summarise(across(over18_pop:over75_pop, sum), .groups = "keep")
+    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   temp_pc <- get_pc_lookup() %>%
-    select(ca2019name, datazone2011) %>%
+    select("ca2019name", "datazone2011") %>%
     group_by(datazone2011) %>%
     summarise(lca = first(ca2019name))
 
-  loc_pops <- left_join(dz_pops, temp_pc, by = "datazone2011") %>%
-    left_join(., get_locality_lookup(),
-      by = "datazone2011"
-    ) %>%
+  loc_pops <- dz_pops %>%
+    left_join(temp_pc, by = "datazone2011") %>%
+    left_join(get_locality_lookup(), by = "datazone2011") %>%
     group_by(year, lca, hscp_locality) %>%
-    summarise(across(over18_pop:over75_pop, sum), .groups = "keep")
+    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   loc_pops <- loc_pops %>%
     mutate(
@@ -142,8 +179,8 @@ get_loc_pops <- function(est_years) {
       values_to = "year",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
-    mutate(temp_part = if_else(lca == "Clackmannanshire" | lca == "Stirling",
+    select(-"name") %>%
+    mutate(temp_part = if_else(lca %in% c("Clackmannanshire", "Stirling"),
       "Clackmannanshire and Stirling",
       NA_character_
     )) %>%
@@ -152,14 +189,14 @@ get_loc_pops <- function(est_years) {
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     mutate(temp_loc = "All") %>%
     pivot_longer(
       cols = c(hscp_locality, temp_loc),
       values_to = "locality",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     mutate(temp_part = if_else(partnership == "Clackmannanshire and Stirling",
       NA_character_,
       "Scotland"
@@ -169,7 +206,7 @@ get_loc_pops <- function(est_years) {
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-name) %>%
+    select(-"name") %>%
     filter(partnership != "Scotland" | locality == "All") %>%
     group_by(year, partnership, locality) %>%
     summarise(across(over18_pop:over75_pop, sum), .groups = "keep") %>%
@@ -183,7 +220,6 @@ create_monthly_beddays <- function(data, year,
                                    admission_date, discharge_date,
                                    include_costs = FALSE, count_last = TRUE,
                                    pivot_longer = FALSE) {
-
   # Create a 'stay interval' from the episode dates
   data <- data %>%
     dplyr::mutate(stay_interval = lubridate::interval(
@@ -253,7 +289,7 @@ create_monthly_beddays <- function(data, year,
   data <- data %>%
     mutate(month = str_c("M", as.character((match(month, str_to_lower(month.abb)) - 3) %% 12))) %>%
     mutate(month = if_else(month == "M0", "M12", month)) %>%
-    left_join(., get_locality_lookup()) %>%
+    left_join(get_locality_lookup()) %>%
     # Aggregate to get monthly totals at locality level
     group_by(lca, ca2019name, hscp_locality, month) %>%
     summarise(across(c("beddays", "cost"), sum, na.rm = TRUE),
@@ -263,4 +299,3 @@ create_monthly_beddays <- function(data, year,
 
   return(data)
 }
-

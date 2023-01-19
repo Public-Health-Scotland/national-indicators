@@ -7,7 +7,7 @@ process_ni14_smra_extract <- function() {
   # Read in data
   smra_extract <-
     tibble::as_tibble(
-      odbc::dbGetQuery(connect_to_smra(), ni14_smra_query())
+      odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni14_smra.sql"))
     ) %>%
     # For R-standard column names
     janitor::clean_names() %>%
@@ -21,10 +21,12 @@ process_ni14_smra_extract <- function() {
     # Aggregate to unique CIS level, based on link_no and cis_marker
     data.table::as.data.table() %>%
     dplyr::group_by(link_no, cis_marker) %>%
-    dplyr::summarise(cis_admdate = min(cis_admdate),
-                     cis_disdate = max(cis_disdate),
-                     admission_type = dplyr::first(admission_type),
-                     discharge_type = dplyr::last(discharge_type)) %>%
+    dplyr::summarise(
+      cis_admdate = min(cis_admdate),
+      cis_disdate = max(cis_disdate),
+      admission_type = dplyr::first(admission_type),
+      discharge_type = dplyr::last(discharge_type)
+    ) %>%
     dplyr::ungroup() %>%
     tibble::as_tibble() %>%
     add_readmission_flag() %>%

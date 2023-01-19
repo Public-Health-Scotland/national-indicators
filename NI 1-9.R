@@ -13,15 +13,17 @@ write_sav(older_data_tableau, glue("Z1 - Data Archive/NI 1-9-Tableau-pre-{Sys.Da
 
 # Get the HACE data at Partnership level
 raw_data_hscp <- read_excel(glue("NI 1-9/HSCP_{hace_year}_final_results_For_LIST.xlsx"),
-                            sheet = 2,
-                            col_names = TRUE
+  sheet = 2,
+  col_names = TRUE
 ) %>%
   clean_names() %>%
   mutate(locality = "All") %>%
-  rename(value = glue("hscp_percent_positive_{hace_year}"),
-         upper_ci = glue("wgt_percentpositive_upp_{hace_year}"),
-         lower_ci = glue("wgt_percentpositive_low_{hace_year}"),
-         partnership = hscp_name)
+  rename(
+    value = glue("hscp_percent_positive_{hace_year}"),
+    upper_ci = glue("wgt_percentpositive_upp_{hace_year}"),
+    lower_ci = glue("wgt_percentpositive_low_{hace_year}"),
+    partnership = hscp_name
+  )
 
 # Read in the HACE data at locality level
 raw_data_loc <- read_excel(glue("NI 1-9/Locality_{hace_year}_final_results_For_LIST.xlsx"),
@@ -44,9 +46,11 @@ raw_data_loc <- read_excel(glue("NI 1-9/Locality_{hace_year}_final_results_For_L
   select(-locality_name) %>%
   # Rename to value and make sure it's a number.
   # Coerces NAs when value is '*' (suppressed data)
-  rename(value = glue("locality_percent_positive_{hace_year}"),
-         upper_ci = glue("wgt_percentpositive_upp_{hace_year}"),
-         lower_ci = glue("wgt_percentpositive_low_{hace_year}")) %>%
+  rename(
+    value = glue("locality_percent_positive_{hace_year}"),
+    upper_ci = glue("wgt_percentpositive_upp_{hace_year}"),
+    lower_ci = glue("wgt_percentpositive_low_{hace_year}")
+  ) %>%
   mutate(across(c("value", "upper_ci", "lower_ci"), as.numeric)) %>%
   filter(partnership != "Scotland")
 
@@ -55,15 +59,15 @@ one_to_nine <- bind_rows(raw_data_loc, raw_data_hscp) %>%
   mutate(
     indicator = case_when(
       # Find indicator based on content of question, as the question numbers may change in the future
-      str_detect(description_2022, "In general,") == TRUE ~ "NI1",
-      str_detect(description_2022, "independently") == TRUE ~ "NI2",
-      str_detect(description_2022, "had a say") == TRUE ~ "NI3",
-      str_detect(description_2022, "coordinated") == TRUE ~ "NI4",
-      str_detect(description_2022, "exclude") == TRUE ~ "NI5",
-      str_detect(description_2022, "GP") == TRUE ~ "NI6",
-      str_detect(description_2022, "maintained") == TRUE ~ "NI7",
-      str_detect(description_2022, "continue") == TRUE ~ "NI8",
-      str_detect(description_2022, "safe") == TRUE ~ "NI9",
+      str_detect(description_2022, "In general,") ~ "NI1",
+      str_detect(description_2022, "independently") ~ "NI2",
+      str_detect(description_2022, "had a say") ~ "NI3",
+      str_detect(description_2022, "coordinated") ~ "NI4",
+      str_detect(description_2022, "exclude") ~ "NI5",
+      str_detect(description_2022, "GP") ~ "NI6",
+      str_detect(description_2022, "maintained") ~ "NI7",
+      str_detect(description_2022, "continue") ~ "NI8",
+      str_detect(description_2022, "safe") ~ "NI9",
       TRUE ~ "No"
     ),
     data = "Annual",
@@ -79,10 +83,11 @@ rm(raw_data_hscp, raw_data_loc)
 
 # Add Scotland totals as a column
 final <- left_join(one_to_nine,
-                      one_to_nine %>% filter(partnership == "Scotland") %>%
-                        rename(scotland = value) %>%
-                        select(data, indicator, year, scotland),
-  by = c("year", "indicator", "data")) %>%
+  one_to_nine %>% filter(partnership == "Scotland") %>%
+    rename(scotland = value) %>%
+    select(data, indicator, year, scotland),
+  by = c("year", "indicator", "data")
+) %>%
   select(year, value, scotland, partnership, numerator, locality, indicator, denominator, data, lower_ci, upper_ci) %>%
   set_colnames(colnames(older_data_tableau))
 
@@ -91,9 +96,9 @@ final <- bind_rows(final, older_data_tableau)
 rm(older_data_tableau)
 
 # Final save outs
-write_sav(all_data_and_vars, "NI 1-9/NI 1-9-All Data and Vars.zsav", compress = TRUE)
+write_sav(all_data_and_vars, "NI 1-9/NI 1-9-All Data and Vars.zsav", compress = "zsav")
 # No Scotland rows in Tableau output
-write_sav(final %>% filter(Partnership1 != "Scotland"), "NI 1-9/NI 1-9-Tableau-Format.zsav")
+write_sav(final %>% filter(Partnership1 != "Scotland"), "NI 1-9/NI 1-9-Tableau-Format.zsav", compress = "zsav")
 # No individual localities in MI output
 write_xlsx(final %>% filter(Locality == "All"), "NI 1-9/NI 1-9-MI-Format.xlsx")
 

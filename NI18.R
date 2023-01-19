@@ -1,73 +1,74 @@
 # Read and format NI 18 data
 # Output for Excel and Tableau
 
-answer <- readline(prompt =
-                     "Do you want to pull old data, or get new data? Valid answers: 'Old', 'New': ")
+answer <- readline(
+  prompt =
+    "Do you want to pull old data, or get new data? Valid answers: 'Old', 'New': "
+)
 
-if (str_detect(answer, regex("old", ignore_case = T)) == T)
-  {# Read the data from the new 'final' spreadsheet
-    data <- read_xlsx("/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 18/MI_Copy_NI18.xlsx",
-      sheet = "Data",
-      guess_max = 12000
+if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from the new 'final' spreadsheet
+  data <- read_xlsx(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "MI_Copy_NI18.xlsx"),
+    sheet = "Data",
+    guess_max = 12000
+  ) %>%
+    filter(Indicator == "NI18") %>%
+    select(
+      Year1 = Year,
+      value = Rate,
+      numerator = Numerator,
+      denominator = Denominator,
+      Partnership1 = Partnership,
+      indicator1 = Indicator,
+      data1 = `Time Period`
+    )
+
+  # Take the Scotland row and turn it into a column and join it back on
+  data <- data %>%
+    left_join(
+      filter(., Partnership1 == "Scotland") %>%
+        rename(scotland = value) %>%
+        select(Year1, scotland)
     ) %>%
-      filter(Indicator == "NI18") %>%
-      select(
-        Year1 = Year,
-        value = Rate,
-        numerator = Numerator,
-        denominator = Denominator,
-        Partnership1 = Partnership,
-        indicator1 = Indicator,
-        data1 = `Time Period`
-      )
+    filter(Partnership1 != "Scotland")
 
-    # Take the Scotland row and turn it into a column and join it back on
-    data <- data %>%
-      left_join(
-        filter(., Partnership1 == "Scotland") %>%
-          rename(scotland = value) %>%
-          select(Year1, scotland)
-      ) %>%
-      filter(Partnership1 != "Scotland")
+  # Create extra variables which are needed and reorder
+  data <- data %>%
+    mutate(
+      locality = "All"
+    ) %>%
+    select(
+      Year1,
+      value,
+      scotland,
+      Partnership1,
+      numerator,
+      locality,
+      indicator1,
+      denominator,
+      data1
+    ) %>%
+    # Sort the data nicely
+    arrange(Year1, Partnership1)
 
-    # Create extra variables which are needed and reorder
-    data <- data %>%
-      mutate(
-        locality = "All"
-      ) %>%
-      select(
-        Year1,
-        value,
-        scotland,
-        Partnership1,
-        numerator,
-        locality,
-        indicator1,
-        denominator,
-        data1
-      ) %>%
-      # Sort the data nicely
-      arrange(Year1, Partnership1)
+  # Turn year into financial year
+  # Create a vectorised function
+  year_to_fy <- Vectorize(function(year) {
+    year <- as.character(year)
+    year_2digit <- as.integer(str_extract(year, "\\d\\d$"))
 
-    # Turn year into financial year
-    # Create a vectorised function
-    year_to_fy <- Vectorize(function(year) {
-      year <- as.character(year)
-      year_2digit <- as.integer(str_extract(year, "\\d\\d$"))
+    fy <- str_glue(year, "/", as.character(year_2digit + 1))
+    return(fy)
+  })
 
-      fy <- str_glue(year, "/", as.character(year_2digit + 1))
-      return(fy)
-    })
+  # Use the funtion
+  data <- data %>% mutate(Year1 = year_to_fy(Year1))
 
-    # Use the funtion
-    data <- data %>% mutate(Year1 = year_to_fy(Year1))
-
-    # Write out for Tableau
-    data %>%
-      # Set the correct length for matching to other SPSS files
-      mutate(locality = str_pad(locality, 68, side = "right")) %>%
-      write_sav("/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 18/NI 18-Final.zsav", compress = TRUE)
-  } else if (str_detect(answer, regex("new", ignore_case = T)) == T) {
+  # Write out for Tableau
+  data %>%
+    # Set the correct length for matching to other SPSS files
+    mutate(locality = str_pad(locality, 68, side = "right")) %>%
+    write_sav(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "NI 18-Final.zsav", compress = "zsav"))
+} else if (str_detect(answer, regex("new", ignore_case = T)) == T) {
   raw_data <- read_excel(
     "NI 18/2022-04-26-balance-of-care.xlsm",
     sheet = "T1 Data",

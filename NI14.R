@@ -1,9 +1,9 @@
 ## NI 14
 
 # Set up connection to SMRA with username and password
-smra_connect <- dbConnect(odbc(),
+smra_connect <- odbc::dbConnect(odbc::odbc(),
   dsn = "SMRA",
-  uid = .rs.askForPassword("SMRA Username:"),
+  uid = Sys.getenv("USER"),
   pwd = .rs.askForPassword("SMRA Password:")
 )
 

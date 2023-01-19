@@ -9,7 +9,7 @@ ni12_13_20 <- function(year_to_run) {
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 1, 2), "-04-01")),
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 3, 4), "-03-31"))
   )
-  financial_year <- stringr::str_c("20", stringr::str_sub(year_to_run, 1, 2), "/", stringr::str_sub(year_to_run, -2))
+  financial_year <- glue::glue("20{stringr::str_sub(year_to_run, 1, 2)}/{stringr::str_sub(year_to_run, -2)}")
 
   # Read in SLF episode file
   slf <- slfhelper::read_slf_episode(
@@ -21,12 +21,12 @@ ni12_13_20 <- function(year_to_run) {
       "yearstay", cost_names
     )
   ) %>%
-    # We only want the emergency admission records. 50B is an older code for GLS
-    tidylog::filter(recid %in% c("01B", "04B", "GLS", "50B")) %>%
+    # We only want the emergency admission records.
+    tidylog::filter(recid %in% c("01B", "04B", "GLS")) %>%
     # We only want over 18s, and the three locations are dental hospitals which we don't include
     tidylog::filter(anon_chi != "" & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")) %>%
     # Recode patient type 18 to Non-Elective and filter out non-emergency admissions
-    tidylog::mutate(cij_pattype = if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
+    tidylog::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
     tidylog::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
     # Multiply all costs by 1.01^uplift
     # mutate(across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
@@ -70,8 +70,8 @@ ni12_13_20 <- function(year_to_run) {
   admissions <- dates %>%
     # Recode Month here to match on to bed days and costs
     tidylog::mutate(month = stringr::str_c("M", as.character((lubridate::month(admission_date) - 3) %% 12))) %>%
-    tidylog::mutate(month = if_else(month == "M0", "M12", month)) %>%
-    tidylog::left_join(., get_locality_lookup()) %>%
+    tidylog::mutate(month = dplyr::if_else(month == "M0", "M12", month)) %>%
+    tidylog::left_join(get_locality_lookup()) %>%
     tidylog::group_by(lca, ca2019name, hscp_locality, month) %>%
     tidylog::summarise(admissions = sum(admission_record)) %>%
     tidylog::ungroup()
@@ -95,7 +95,7 @@ ni12_13_20 <- function(year_to_run) {
     ) %>%
     tidylog::select(-name) %>%
     # Clacks & Stirling totals
-    tidylog::mutate(temp_part = if_else(ca2019name == "Clackmannanshire" | ca2019name == "Stirling",
+    tidylog::mutate(temp_part = dplyr::if_else(ca2019name %in% c("Clackmannanshire", "Stirling"),
       "Clackmannanshire and Stirling", NA_character_
     )) %>%
     tidylog::pivot_longer(
@@ -126,8 +126,11 @@ ni12_13_20 <- function(year_to_run) {
     tidylog::mutate(year = financial_year) %>%
     tidylog::rename(partnership = ca2019name, locality = hscp_locality)
 
-  ni_values <- tidylog::left_join(all_groups, get_loc_pops(), by = c("year", "partnership", "locality")) %>%
-    tidylog::left_join(., readr::read_rds("Z2 - R Code/Cost Lookup BM.rds") %>% tidylog::filter(year == financial_year),
+  ni_values <- all_groups %>%
+    tidylog::left_join(get_loc_pops(), by = c("year", "partnership", "locality")) %>%
+    tidylog::left_join(
+      readr::read_rds(fs::path("Z2 - R Code", "Cost Lookup BM.rds")) %>%
+        tidylog::filter(year == financial_year),
       by = c("year", "partnership")
     ) %>%
     tidylog::mutate(
@@ -148,7 +151,7 @@ ni12_13_20 <- function(year_to_run) {
       NI20_denominator = total_cost
     ) %>%
     tidylog::pivot_longer(
-      cols = starts_with("NI"),
+      cols = tidyselect::starts_with("NI"),
       names_to = c("indicator", ".value"),
       names_pattern = "(NI\\d{2})_(\\w+)"
     )
@@ -169,22 +172,23 @@ ni12_13_20 <- function(year_to_run) {
 ni_final_monthly <- list(
   ni12_13_20("1920"),
   ni12_13_20("2021"),
-  ni12_13_20("2122"))
+  ni12_13_20("2122")
+)
 
 ni_final_quarterly <- ni_final_monthly %>%
   purrr::map_dfr(~
-  mutate(.x, data = case_when(
-    data %in% c("M1", "M2", "M3") ~ "Q1",
-    data %in% c("M4", "M5", "M6") ~ "Q2",
-    data %in% c("M7", "M8", "M9") ~ "Q3",
-    data %in% c("M10", "M11", "M12") ~ "Q4",
-    data == "Annual" ~ "Annual"
-  )) %>%
-    group_by(indicator, year, data, partnership, locality) %>%
-    summarise(
-      across(c(value, scotland, numerator), sum),
-      across(denominator, max)
-    ))
+    mutate(.x, data = case_when(
+      data %in% c("M1", "M2", "M3") ~ "Q1",
+      data %in% c("M4", "M5", "M6") ~ "Q2",
+      data %in% c("M7", "M8", "M9") ~ "Q3",
+      data %in% c("M10", "M11", "M12") ~ "Q4",
+      data == "Annual" ~ "Annual"
+    )) %>%
+      group_by(indicator, year, data, partnership, locality) %>%
+      summarise(
+        across(c(value, scotland, numerator), sum),
+        across(denominator, max)
+      ))
 ni_final_monthly <- bind_rows(ni_final_monthly)
 write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly.rds", compress = "gz")
 write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly.rds", compress = "gz")
