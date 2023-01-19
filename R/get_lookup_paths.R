@@ -244,3 +244,32 @@ get_simd_path <- function(file_name = NULL, ext = "rds") {
 
   return(simd_path)
 }
+
+#' Population Estimates File Path
+#'
+#' @description Get the path to the centrally held Population Estimates file.
+#'
+#' @param file_name (optional) the file name of the population file, if not supplied
+#' it will try to return the latest file automatically (using
+#' [find_latest_file()])
+#' @param ext The extension (type of the file) - optional
+#'
+#' @return An [fs::path()] to the populaiton estimate file
+#' @export
+get_population_estimate_path <- function(file_name = NULL, ext = "rds") {
+  pop_dir <-
+    fs::path(get_lookups_dir(), "Populations", "Estimates")
+
+  pop_path <- get_file_path(
+    directory = pop_dir,
+    file_name = file_name,
+    ext = ext,
+    file_name_regexp = glue::glue("DataZone2011_pop_est_\\d+_\\d+.{ext}")
+  )
+
+  return(pop_path)
+
+}
+
+
+
