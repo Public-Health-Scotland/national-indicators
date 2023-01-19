@@ -1,6 +1,6 @@
 create_population_lookup <- function() {
   # Read in the most recent populations file
-  dz_pops <- readr::read_rds(get_populations_path()) %>%
+  dz_pops <- readr::read_rds(get_population_estimate_path()) %>%
     # Filter out anything before 2013 as we don't use this data
     dplyr::filter(year >= 2013) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
@@ -74,10 +74,12 @@ create_population_lookup <- function() {
     # Final sum of all the populations and extra groups we added
     dplyr::group_by(year, partnership, hscp_locality) %>%
     dplyr::summarise(dplyr::across(over18_pop:over75_pop, sum), .groups = "keep") %>%
-    # Create a financial year variable, used to match on to financial year data
-    dplyr::mutate(financial_year = stringr::str_c(
-      year, "/", as.character(as.integer(stringr::str_sub(year, 3, 4)) + 1)
-    ))
+    dplyr::ungroup() %>%
+    dplyr::mutate(year = as.character(year)) %>%
+    dplyr::rename(
+      pop_year = year,
+      locality = hscp_locality
+    )
 
   return(loc_pops)
 }
