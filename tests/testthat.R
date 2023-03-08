@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(national - indicators)
+library(phsni)
 
-test_check("national-indicators")
+test_check("phsni")

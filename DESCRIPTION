@@ -33,4 +33,8 @@ Remotes:
 URL: https://github.com/Public-Health-Scotland/national-indicators
 BugReports: https://github.com/Public-Health-Scotland/national-indicators/issues
 Suggests: 
-    covr
+    covr,
+    spelling,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Language: en-GB
