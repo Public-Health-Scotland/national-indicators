@@ -9,4 +9,28 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
+Imports: 
+    cli,
+    data.table,
+    dplyr,
+    dtplyr,
+    fs,
+    glue,
+    haven,
+    janitor,
+    lubridate,
+    odbc,
+    phsmethods (>= 0.2.2),
+    readr,
+    readxl,
+    reshape2,
+    stringr,
+    tibble,
+    tidyr
+Remotes: 
+    Public-Health-Scotland
+URL: https://github.com/Public-Health-Scotland/national-indicators
+BugReports: https://github.com/Public-Health-Scotland/national-indicators/issues
+Suggests: 
+    covr
