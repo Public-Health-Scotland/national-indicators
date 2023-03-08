@@ -1,6 +1,6 @@
 #' Standardise partnership names for NIs
 #'
-#' @param partnership_name A vector of existing poartnership names
+#' @param partnership_name A vector of existing partnership names
 #'
 #' @return A vector of partnership names in the NI expected format
 #' @export
