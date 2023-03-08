@@ -29,7 +29,7 @@ Imports:
     tibble,
     tidyr
 Remotes: 
-    Public-Health-Scotland
+    Public-Health-Scotland/phsmethods
 URL: https://github.com/Public-Health-Scotland/national-indicators
 BugReports: https://github.com/Public-Health-Scotland/national-indicators/issues
 Suggests: 
