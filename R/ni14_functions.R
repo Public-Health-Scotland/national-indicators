@@ -7,7 +7,6 @@
 #'
 #' @return A data frame with a new variable, emergency_readm_28
 add_readmission_flag <- function(data) {
-
   return_data <- data %>%
     dplyr::group_by(.data$link_no) %>%
     dplyr::arrange("cis_admdate", "cis_disdate", .by_group = TRUE) %>%
@@ -20,10 +19,12 @@ add_readmission_flag <- function(data) {
       emergency_readm = .data$next_admission_type %in% c(20:22, 30:39),
       # Find the number of days between discharge and next admission
       days_between_stays = lubridate::time_length(
-        lubridate::interval(.data$cis_disdate, .data$next_admission), "days"),
+        lubridate::interval(.data$cis_disdate, .data$next_admission), "days"
+      ),
       # Flag if the readmission was within 28 days and it was an emergency
       emergency_readm_28 = .data$days_between_stays %in% 0:28 & .data$emergency_readm,
-      dplyr::across("emergency_readm_28", ~ replace(., is.na(.), FALSE)))
+      dplyr::across("emergency_readm_28", ~ replace(., is.na(.), FALSE))
+    )
 
   return(return_data)
 }
@@ -95,15 +96,16 @@ match_smra_and_deaths <- function(smra_data, gro_data) {
   # Match the death dates onto the main table
   return_data <-
     dplyr::left_join(smra_data,
-                     gro_data,
-                     by = "link_no") %>%
+      gro_data,
+      by = "link_no"
+    ) %>%
     # If the death date is the same as a discharge
     # we will discount it, as this cannot result in a readmission
     dplyr::mutate(
       discharge_to_death = .data$death_date - .data$cis_disdate,
       discharged_dead_both =
         discharge_to_death <= 0 & death_date >= cis_admdate |
-        discharged_dead,
+          discharged_dead,
       dplyr::across("discharged_dead_both", ~ replace(., is.na(.), FALSE)),
       # Set up a flag to keep records where patient is not dead at discharge date
       stay = !discharged_dead_both,
@@ -159,5 +161,4 @@ calculate_ni14 <- function() {
     match_on_geographies() %>%
     calculate_locality_totals()
   return(final_data)
-
 }
