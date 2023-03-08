@@ -20,6 +20,7 @@ Imports:
     haven,
     janitor,
     lubridate,
+    magrittr,
     odbc,
     phsmethods (>= 0.2.2),
     readr,

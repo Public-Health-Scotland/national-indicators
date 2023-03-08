@@ -127,14 +127,11 @@ match_on_geographies <- function(data) {
   return(return_data)
 }
 
-#' Title
+#' Calculate locality totals
 #'
 #' @param data
 #'
-#' @return
-#' @import data.table
-#'
-#' @examples
+#' @return a [tibble][tibble::tibble-package]
 calculate_locality_totals <- function(data) {
   # Aggregate to locality-level at the lowest
   return_data <- data %>%
@@ -145,6 +142,7 @@ calculate_locality_totals <- function(data) {
     dplyr::ungroup() %>%
     tibble::as_tibble() %>%
     dplyr::mutate(partnership = phsmethods::match_area(ca2018))
+
   return(return_data)
 }
 

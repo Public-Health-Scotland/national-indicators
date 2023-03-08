@@ -2,13 +2,16 @@
 % Please edit documentation in R/ni14_functions.R
 \name{calculate_locality_totals}
 \alias{calculate_locality_totals}
-\title{Title}
+\title{Calculate locality totals}
 \usage{
 calculate_locality_totals(data)
 }
 \arguments{
 \item{data}{}
 }
+\value{
+a \link[tibble:tibble-package]{tibble}
+}
 \description{
-Title
+Calculate locality totals
 }
