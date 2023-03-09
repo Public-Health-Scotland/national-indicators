@@ -48,19 +48,19 @@ monthly_beddays_and_admissions <- function(data,
         earliest_date %m+% months(month + (12 * (year - min(years))))
       }
     ) %>%
-    map(function(interval_start) {
+    dplyr::map(function(interval_start) {
       # Take the list of months just produced and create a list of
       # one month intervals
       lubridate::interval(interval_start, interval_start %m+% months(1))
     }) %>%
     # Give them names these will be of the form MMM_YYYY
-    setNames(str_c(
+    setNames(stringr::str_c(
       rep(month_names, length(years)),
       "_", sort(rep(years, 12)), "_beddays"
     ))
 
   # Remove any months which are after the latest_date
-  month_intervals <- month_intervals[map_lgl(
+  month_intervals <- month_intervals[dplyr::map_lgl(
     month_intervals,
     ~ latest_date > lubridate::int_start(.)
   )]
@@ -69,22 +69,22 @@ monthly_beddays_and_admissions <- function(data,
   # and work out the beddays
   data <- data %>%
     # map_dfc will return a single dataframe with all the others bound by column
-    bind_cols(map_dfc(month_intervals, function(month_interval) {
+    dplyr::bind_cols(purrr::map_dfc(month_intervals, function(month_interval) {
       # Use intersect to find the overlap between the month of interest
       # and the stay, then use time_length to measure the length in days
-      time_length(
+      lubridate::time_length(
         intersect(
           # use int_shift to move the interval forward by one day
           # This is so we count the last day (and not the first), which is
           # the correct methodology
-          int_shift(
-            interval(
+          lubridate::int_shift(
+            lubridate::interval(
               data %>%
-                pull(admission_date),
+                dplyr::pull(admission_date),
               data %>%
-                pull(discharge_date)
+                dplyr::pull(discharge_date)
             ),
-            by = days(1)
+            by = lubridate::days(1)
           ),
           month_interval
         ),
@@ -99,10 +99,10 @@ monthly_beddays_and_admissions <- function(data,
 
   data <- data %>%
     # map_dfc will return a single dataframe with all the others bound by column
-    bind_cols(map_dfc(month_intervals, function(month_interval) {
-      if_else(data %>%
-        pull(discharge_date) %>%
-        floor_date(unit = "month") == int_start(month_interval),
+    dplyr::bind_cols(purrr::map_dfc(month_intervals, function(month_interval) {
+      dplyr::if_else(data %>%
+        dplyr::pull(discharge_date) %>%
+        lubridate::floor_date(unit = "month") == lubridate::int_start(month_interval),
       1L,
       NA_integer_
       )
@@ -116,13 +116,13 @@ monthly_beddays_and_admissions <- function(data,
     data <- data %>%
       # Use pivot longer to create a month, year and beddays column which
       # can be used to aggregate later
-      pivot_longer(
+      tidyr::pivot_longer(
         cols = contains(c("_19", "_20")),
         names_to = c("month", "year", ".value"),
         names_pattern = "^([A-Z][a-z]{2})_(\\d{4})_([a-z]+)$",
         names_ptypes = list(
           month = factor(
-            levels = as.vector(month(1:12,
+            levels = as.vector(lubridate::month(1:12,
               label = TRUE
             )),
             ordered = TRUE
@@ -135,8 +135,8 @@ monthly_beddays_and_admissions <- function(data,
         values_drop_na = TRUE
       ) %>%
       # Create a 'quarter' column
-      mutate(
-        quarter = case_when(
+      dplyr::mutate(
+        quarter = dplyr::case_when(
           month %in% month_names[1:3] ~ 1,
           month %in% month_names[4:6] ~ 2,
           month %in% month_names[7:9] ~ 3,
