@@ -11,7 +11,7 @@ library(magrittr) # For assignment pipe
 library(lubridate) # Handles dates easier
 library(stringr) # Handling strings
 library(glue) # For strings and code calls
-library(phsmethods) # For geography matching and fin_year()
+library(phsmethods) # For geography matching and phsmethods::fin_year()
 library(slfhelper) # Easy reading of Source Episode Files
 library(purrr) # For map functions over lists
 library(writexl) # Write excel
@@ -23,7 +23,7 @@ library(dbplyr) # For reading SMRA
 # Constants ----
 
 # Get the current month in 'MMM-YY' format, for appending save outs
-update_month <- str_c(month.abb[month(Sys.Date())], "-", year(Sys.Date()))
+update_month <- stringr::str_c(month.abb[lubridate::month(Sys.Date())], "-", lubridate::year(Sys.Date()))
 
 last_update <- ""
 
@@ -33,17 +33,17 @@ ni_columns <- c()
 # For NI 15, list of ICD-10 codes for external causes of death
 external_cause_codes <- purrr::reduce(
   list(
-    glue("V0{1:9}"), glue("V{10:99}"),
-    glue("W0{0:9}"), glue("W{10:99}"),
-    glue("X0{0:9}"), glue("X{10:99}"),
-    glue("Y0{0:9}"), glue("Y{10:84}")
+    glue::glue("V0{1:9}"), glue::glue("V{10:99}"),
+    glue::glue("W0{0:9}"), glue::glue("W{10:99}"),
+    glue::glue("X0{0:9}"), glue::glue("X{10:99}"),
+    glue::glue("Y0{0:9}"), glue::glue("Y{10:84}")
   ),
   union
 )
 # Codes representing falls
 falls_codes <- union(
-  glue("W0{as.character(c(0:9))}"),
-  glue("W{as.character(c(10:19))}")
+  glue::glue("W0{as.character(c(0:9))}"),
+  glue::glue("W{as.character(c(10:19))}")
 )
 
 excluded_codes <- generics::setdiff(external_cause_codes, falls_codes)
@@ -81,25 +81,25 @@ excluded_locations <- c(
 big_lookup <- function() {
   lookup_dir <- fs::path("/", "conf", "linkage", "output", "lookups", "Unicode")
 
-  simd <- read_sav(
+  simd <- haven::read_sav(
     fs::path(lookup_dir, "Deprivation", "postcode_2022_1_simd2020v2.zsav")
   ) %>%
-    select("pc7", "simd2020v2_sc_decile", "simd2020v2_sc_quintile", "simd2020v2tp15")
+    dplyr::select("pc7", "simd2020v2_sc_decile", "simd2020v2_sc_quintile", "simd2020v2tp15")
 
-  postcode <- read_sav(
+  postcode <- haven::read_sav(
     fs::path("/", "conf", "hscdiip", "SLF_Extracts", "Lookups", "Scottish_Postcode_Directory_2022_1.zsav")
   ) %>%
-    clean_names() %>%
-    select("pc7", "hb2018", "hscp2018", "ca2018", datazone2011 = "data_zone2011")
+    janitor::clean_names() %>%
+    dplyr::select("pc7", "hb2018", "hscp2018", "ca2018", datazone2011 = "data_zone2011")
 
-  locality <- read_rds(
+  locality <- readr::read_rds(
     fs::path(lookup_dir, "Geography", "HSCP Locality", "HSCP Localities_DZ11_Lookup_20200825.rds")
   ) %>%
-    select("datazone2011", "datazone2011name", locality = "hscp_locality")
+    dplyr::select("datazone2011", "datazone2011name", locality = "hscp_locality")
 
   big_lookup <- postcode %>%
-    left_join(simd, by = "pc7") %>%
-    left_join(locality, by = "datazone2011")
+    dplyr::left_join(simd, by = "pc7") %>%
+    dplyr::left_join(locality, by = "datazone2011")
 
   return(big_lookup)
 }
@@ -107,12 +107,12 @@ big_lookup <- function() {
 # Standard LCA names
 standardise_partnerships <- function(df, partnership) {
   return_df <- df %>%
-    mutate(across({{ partnership }}, ~ .x %>%
-      str_replace("^City of Edinburgh$", "Edinburgh") %>%
-      str_replace("Edinburgh, City of", "Edinburgh") %>%
-      str_replace("Na h-Eileanan Siar", "Western Isles") %>%
-      str_replace("&", "and") %>%
-      str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
+    dplyr::mutate(dplyr::across({{ partnership }}, ~ .x %>%
+      stringr::str_replace("^City of Edinburgh$", "Edinburgh") %>%
+      stringr::str_replace("Edinburgh, City of", "Edinburgh") %>%
+      stringr::str_replace("Na h-Eileanan Siar", "Western Isles") %>%
+      stringr::str_replace("&", "and") %>%
+      stringr::str_replace("(^Orkney$|^Shetland$)", "\\1 Islands")))
   return(return_df)
 }
 
@@ -121,95 +121,95 @@ standardise_partnerships <- function(df, partnership) {
 fin_year_month <- function(dataset, date_variable) {
   # Formats financial year as '20XX/YY' and gets the month number
   return_df <- df %>%
-    mutate(year = fin_year({{ date_variable }})) %>%
+    dplyr::mutate(year = phsmethods::fin_year({{ date_variable }})) %>%
     # Assigns months a value based on April
     # being the start of the financial year
-    mutate(fin_month = case_when(
-      between(month({{ date_variable }}), 1, 3)
-      ~ month({{ date_variable }}) + 9,
-      between(month({{ date_variable }}), 4, 12)
-      ~ month({{ date_variable }}) - 3
+    dplyr::mutate(fin_month = dplyr::case_when(
+      dplyr::between(lubridate::month({{ date_variable }}), 1, 3)
+      ~ lubridate::month({{ date_variable }}) + 9,
+      dplyr::between(lubridate::month({{ date_variable }}), 4, 12)
+      ~ lubridate::month({{ date_variable }}) - 3
     )) %>%
     # Puts an 'M' in front of the month number and makes 'month' a string
-    mutate(month = paste0("M", fin_month)) %>%
-    select(-"fin_month")
+    dplyr::mutate(month = paste0("M", fin_month)) %>%
+    dplyr::select(-"fin_month")
   return(return_df)
 }
 
 to_fin_year <- function(df) {
   return_df <- df %>%
-    mutate(last_two_digits = substr(year, 3, 4)) %>%
-    mutate(next_year = as.numeric(last_two_digits) + 1) %>%
-    mutate(year = str_c("20", last_two_digits, "/", next_year)) %>%
-    select(-"last_two_digits", -"next_year")
+    dplyr::mutate(last_two_digits = substr(year, 3, 4)) %>%
+    dplyr::mutate(next_year = as.numeric(last_two_digits) + 1) %>%
+    dplyr::mutate(year = stringr::str_c("20", last_two_digits, "/", next_year)) %>%
+    dplyr::select(-"last_two_digits", -"next_year")
   return(return_df)
 }
 
 # Populations ----
 get_loc_pops <- function(est_years) {
   dz_pops <- readr::read_rds(fs::path("/", "conf", "linkage", "output", "lookups", "Unicode", "Populations", "Estimates", glue::glue("DataZone2011_pop_est_{est_years}.rds"))) %>%
-    filter(year >= 2013) %>%
-    mutate(
-      over18_pop = rowSums(across("age18":"age90plus")),
-      over65_pop = rowSums(across("age65":"age90plus")),
-      over75_pop = rowSums(across("age75":"age90plus"))
+    dplyr::filter(year >= 2013) %>%
+    dplyr::mutate(
+      over18_pop = rowSums(dplyr::across("age18":"age90plus")),
+      over65_pop = rowSums(dplyr::across("age65":"age90plus")),
+      over75_pop = rowSums(dplyr::across("age75":"age90plus"))
     ) %>%
-    select(-c("age0":"age90plus")) %>%
-    group_by(year, datazone2011) %>%
-    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
+    dplyr::select(-c("age0":"age90plus")) %>%
+    dplyr::group_by(year, datazone2011) %>%
+    dplyr::summarise(dplyr::across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   temp_pc <- get_pc_lookup() %>%
-    select("ca2019name", "datazone2011") %>%
-    group_by(datazone2011) %>%
-    summarise(lca = first(ca2019name))
+    dplyr::select("ca2019name", "datazone2011") %>%
+    dplyr::group_by(datazone2011) %>%
+    dplyr::summarise(lca = dplyr::first(ca2019name))
 
   loc_pops <- dz_pops %>%
-    left_join(temp_pc, by = "datazone2011") %>%
-    left_join(get_locality_lookup(), by = "datazone2011") %>%
-    group_by(year, lca, hscp_locality) %>%
-    summarise(across("over18_pop":"over75_pop", sum), .groups = "keep")
+    dplyr::left_join(temp_pc, by = "datazone2011") %>%
+    dplyr::left_join(get_locality_lookup(), by = "datazone2011") %>%
+    dplyr::group_by(year, lca, hscp_locality) %>%
+    dplyr::summarise(dplyr::across("over18_pop":"over75_pop", sum), .groups = "keep")
 
   loc_pops <- loc_pops %>%
-    mutate(
-      temp_year1 = if_else(year == 2020, 2021, NA_real_),
-      temp_year2 = if_else(year == 2020, 2022, NA_real_)
+    dplyr::mutate(
+      temp_year1 = dplyr::if_else(year == 2020, 2021, NA_real_),
+      temp_year2 = dplyr::if_else(year == 2020, 2022, NA_real_)
     ) %>%
-    pivot_longer(
+    tidyr::pivot_longer(
       cols = c(year, temp_year1, temp_year2),
       values_to = "year",
       values_drop_na = TRUE
     ) %>%
-    select(-"name") %>%
-    mutate(temp_part = if_else(lca %in% c("Clackmannanshire", "Stirling"),
+    dplyr::select(-"name") %>%
+    dplyr::mutate(temp_part = dplyr::if_else(lca %in% c("Clackmannanshire", "Stirling"),
       "Clackmannanshire and Stirling",
       NA_character_
     )) %>%
-    pivot_longer(
+    tidyr::pivot_longer(
       cols = c(lca, temp_part),
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-"name") %>%
-    mutate(temp_loc = "All") %>%
-    pivot_longer(
+    dplyr::select(-"name") %>%
+    dplyr::mutate(temp_loc = "All") %>%
+    tidyr::pivot_longer(
       cols = c(hscp_locality, temp_loc),
       values_to = "locality",
       values_drop_na = TRUE
     ) %>%
-    select(-"name") %>%
-    mutate(temp_part = if_else(partnership == "Clackmannanshire and Stirling",
+    dplyr::select(-"name") %>%
+    dplyr::mutate(temp_part = dplyr::if_else(partnership == "Clackmannanshire and Stirling",
       NA_character_,
       "Scotland"
     )) %>%
-    pivot_longer(
+    tidyr::pivot_longer(
       cols = c(partnership, temp_part),
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    select(-"name") %>%
-    filter(partnership != "Scotland" | locality == "All") %>%
-    group_by(year, partnership, locality) %>%
-    summarise(across(over18_pop:over75_pop, sum), .groups = "keep") %>%
+    dplyr::select(-"name") %>%
+    dplyr::filter(partnership != "Scotland" | locality == "All") %>%
+    dplyr::group_by(year, partnership, locality) %>%
+    dplyr::summarise(dplyr::across(over18_pop:over75_pop, sum), .groups = "keep") %>%
     to_fin_year()
 
   return(loc_pops)
@@ -231,7 +231,7 @@ create_monthly_beddays <- function(data, year,
       lubridate::int_shift(by = lubridate::days(ifelse(count_last, 1, 0))))
 
   # Create the start dates of the months for the financial year
-  cal_year <- as.numeric(str_c("20", str_sub(as.character(year), 1, 2)))
+  cal_year <- as.numeric(stringr::str_c("20", stringr::str_sub(as.character(year), 1, 2)))
   month_start <- c(
     lubridate::my(paste0(
       month.abb[4:12],
@@ -278,7 +278,7 @@ create_monthly_beddays <- function(data, year,
     data <- data %>%
       # Use pivot longer to create a month, year and beddays column which
       # can be used to aggregate later
-      pivot_longer(
+      tidyr::pivot_longer(
         cols = c(contains("beddays"), contains("cost")),
         names_to = c("month", ".value"),
         names_sep = "_"
@@ -287,15 +287,15 @@ create_monthly_beddays <- function(data, year,
 
   # Change month to "Mx" format, starting at April
   data <- data %>%
-    mutate(month = str_c("M", as.character((match(month, str_to_lower(month.abb)) - 3) %% 12))) %>%
-    mutate(month = if_else(month == "M0", "M12", month)) %>%
-    left_join(get_locality_lookup()) %>%
+    dplyr::mutate(month = stringr::str_c("M", as.character((match(month, stringr::str_to_lower(month.abb)) - 3) %% 12))) %>%
+    dplyr::mutate(month = dplyr::if_else(month == "M0", "M12", month)) %>%
+    dplyr::left_join(get_locality_lookup()) %>%
     # Aggregate to get monthly totals at locality level
-    group_by(lca, ca2019name, hscp_locality, month) %>%
-    summarise(across(c("beddays", "cost"), sum, na.rm = TRUE),
+    dplyr::group_by(lca, ca2019name, hscp_locality, month) %>%
+    dplyr::summarise(dplyr::across(c("beddays", "cost"), sum, na.rm = TRUE),
       .groups = "keep"
     ) %>%
-    ungroup()
+    dplyr::ungroup()
 
   return(data)
 }
