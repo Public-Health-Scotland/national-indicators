@@ -6,11 +6,9 @@
 #' can be matched on `year` and `time_period`
 #' @export
 create_scotland_column <- function(data) {
-
   return_data <- data %>%
     dplyr::filter(partnership == "Scotland") %>%
-    dplyr::rename(scotland = value) %>%
-    dplyr::select("year", "time_period", "scotland")
+    dplyr::select("year", "time_period", scotland = "value")
 
   return(return_data)
 }

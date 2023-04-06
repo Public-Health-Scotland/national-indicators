@@ -7,15 +7,14 @@
 #' [get_locality_path()]
 process_ni16_smra_extract <- function() {
   return_data <-
-    tibble::as_tibble(
-      odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni16_smra.sql"))
-    ) %>%
+          odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni16_smra.sql"))
+    tibble::as_tibble() %>%
     # For R-standard column names
     janitor::clean_names() %>%
     # Change diagnosis codes to first three characters
     dplyr::mutate(dplyr::across(main_condition:other_condition_5, stringr::str_sub, 1, 3)) %>%
     # Filter out any records where the diagnosis didn't involve a fall
-    dplyr::filter(if_any(
+    dplyr::filter(dplyr::if_any(
       c(main_condition:other_condition_5),
       ~ . %in% falls_diagnosis_codes()
     )) %>%
@@ -32,12 +31,13 @@ process_ni16_smra_extract <- function() {
       by = c("postcode" = "pc7")
     ) %>%
     dplyr::filter(!is_missing(datazone2011)) %>%
-    dplyr::left_join(.,
+    dplyr::left_join(
       readr::read_rds(get_locality_path()) %>%
         dplyr::select("datazone2011", "ca2019name", "hscp_locality"),
       by = "datazone2011"
     ) %>%
     dplyr::rename(partnership = ca2019name, locality = hscp_locality)
+
   return(return_data)
 }
 
@@ -48,6 +48,8 @@ process_ni16_smra_extract <- function() {
 #'
 #' @return The extract aggregated to chosen date level, with falls as the summary variable
 aggregate_to_date_level <- function(data, date_level = c("calendar", "financial")) {
+date_level <- match.args(date_level)
+
   return_data <- data %>%
     # Either selects c("fin_year", "fin_month") or c("cal_year", "cal_month")
     dplyr::group_by(
