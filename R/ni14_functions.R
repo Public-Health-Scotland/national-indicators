@@ -121,9 +121,9 @@ match_on_geographies <- function(data) {
     readr::read_rds(get_spd_path()),
     by = c("postcode" = "pc7")
   ) %>%
-    dplyr::left_join(.,
+    dplyr::left_join(
       readr::read_rds(get_locality_path()) %>%
-        dplyr::select(datazone2011, hscp_locality),
+        dplyr::select("datazone2011", "hscp_locality"),
       by = "datazone2011"
     )
   return(return_data)
@@ -137,10 +137,20 @@ match_on_geographies <- function(data) {
 calculate_locality_totals <- function(data) {
   # Aggregate to locality-level at the lowest
   return_data <- data %>%
-    dplyr::select(year, fin_month, ca2018, hscp_locality, datazone2011, emergency_readm_28, stay) %>%
+    dplyr::select(
+      "year",
+      "fin_month",
+      "ca2018",
+      "hscp_locality",
+      "datazone2011",
+      "emergency_readm_28",
+      "stay"
+    ) %>%
     dtplyr::lazy_dt() %>%
     dplyr::group_by(year, fin_month, ca2018, hscp_locality) %>%
-    dplyr::summarise(dplyr::across(emergency_readm_28:stay, sum, na.rm = TRUE)) %>%
+    dplyr::summarise(
+      dplyr::across(emergency_readm_28:stay, ~ sum(.x, na.rm = TRUE))
+    ) %>%
     dplyr::ungroup() %>%
     tibble::as_tibble() %>%
     dplyr::mutate(partnership = phsmethods::match_area(ca2018))

@@ -6,7 +6,7 @@
 #' @return A data frame with additional rows for C&S
 #' @export
 add_clacks_and_stirling <- function(data, council_variable) {
-  return_data <- data %>%
+  data_inc_c_and_s <- data %>%
     dplyr::mutate(
       temp_part =
         dplyr::if_else({{ council_variable }} %in% c("Clackmannanshire", "Stirling"),
@@ -15,9 +15,11 @@ add_clacks_and_stirling <- function(data, council_variable) {
         )
     ) %>%
     tidyr::pivot_longer(
-      cols = c(partnership, temp_part),
+      cols = c("partnership", "temp_part"),
       values_to = "partnership",
       values_drop_na = TRUE
     ) %>%
-    dplyr::select(-name)
+    dplyr::select(!"name")
+
+  return(data_inc_c_and_s)
 }

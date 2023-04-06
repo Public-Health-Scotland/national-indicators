@@ -62,4 +62,6 @@ slf_indicator_update_periods <- function() {
       "2022/23 Q1", "2022/23 Q2", "2022/23 Q3"
     )
   )
+
+  return(periods)
 }
