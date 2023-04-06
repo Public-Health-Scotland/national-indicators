@@ -131,7 +131,7 @@ calculate_ni16_final_output <- function() {
   ) %>%
     purrr::map(add_additional_groups) %>%
     purrr::map(., ~ dplyr::mutate(.x, pop_year = stringr::str_sub(year, 1, 4)) %>%
-      dplyr::left_join(., create_population_lookup(),
+      dplyr::left_join(create_population_lookup(),
         by = c("pop_year", "locality", "partnership")
       ) %>%
       # We only require the over 65 population
