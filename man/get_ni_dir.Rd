@@ -4,7 +4,7 @@
 \alias{get_ni_dir}
 \title{NI directory (irf)}
 \usage{
-get_ni_dir()
+get_ni_dir(indicator = NULL)
 }
 \value{
 The path to the NI folder
