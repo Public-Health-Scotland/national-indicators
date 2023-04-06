@@ -26,7 +26,7 @@ process_ni16_smra_extract <- function() {
       cal_month = lubridate::month(discharge_date),
       cal_year = lubridate::year(discharge_date)
     ) %>%
-    dplyr::left_join(.,
+    dplyr::left_join(
       readr::read_rds(get_spd_path()) %>%
         dplyr::select("pc7", "ca2018", "datazone2011"),
       by = c("postcode" = "pc7")
