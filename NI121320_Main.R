@@ -19,6 +19,7 @@ ni12_13_20 <- function(year_to_run) {
       "yearstay", cost_names
     )
   ) %>%
+    dtplyr::lazy_dt() %>%
     # We only want the emergency admission records.
     tidylog::filter(recid %in% c("01B", "04B", "GLS")) %>%
     # We only want over 18s, and the three locations are dental hospitals which we don't include
@@ -37,7 +38,8 @@ ni12_13_20 <- function(year_to_run) {
       dplyr::across(cost_names, sum, na.rm = TRUE),
       .groups = "keep"
     ) %>%
-    tidylog::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::collect()
 
 
   # SECTION 2 - HANDLE DATES ----
