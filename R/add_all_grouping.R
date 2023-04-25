@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' tibble::tribble(~age, ~value, "1", 3, "2", 5, "3", 6) %>%
-#' add_all_grouping("age", "All ages")
+#'   add_all_grouping("age", "All ages")
 add_all_grouping <- function(data, group_var, group) {
   return_data <- data %>%
     dplyr::mutate(temp = {{ group }}) %>%

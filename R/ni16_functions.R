@@ -6,11 +6,10 @@
 #' @seealso [connect_to_smra()], [calculate_financial_month()], [get_spd_path()],
 #' [get_locality_path()]
 process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
-
   smra_query <- glue::glue(readr::read_file("SQL/ni16_smra.sql"))
 
   return_data <-
-          odbc::dbGetQuery(connect_to_smra(), smra_query) %>%
+    odbc::dbGetQuery(connect_to_smra(), smra_query) %>%
     tibble::as_tibble() %>%
     # For R-standard column names
     janitor::clean_names() %>%
@@ -51,7 +50,6 @@ process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
 #'
 #' @return The extract aggregated to chosen date level, with falls as the summary variable
 aggregate_to_date_level <- function(data, date_level = c("calendar", "financial")) {
-
   return_data <- data %>%
     # Either selects c("fin_year", "fin_month") or c("cal_year", "cal_month")
     dplyr::group_by(
@@ -137,8 +135,11 @@ calculate_ni16_final_output <- function(write_to_disk = TRUE) {
   ) %>%
     purrr::map(~ add_additional_groups(.x)) %>%
     purrr::map(~ dplyr::mutate(.x, pop_year = stringr::str_sub(year, 1, 4)) %>%
-      dplyr::left_join(read_population_lookup(min_year = 2013,
-                                              ages_required = "over65"),
+      dplyr::left_join(
+        read_population_lookup(
+          min_year = 2013,
+          ages_required = "over65"
+        ),
         by = c("pop_year", "locality", "partnership")
       ) %>%
       # NI16 value is falls rate per 1000 population

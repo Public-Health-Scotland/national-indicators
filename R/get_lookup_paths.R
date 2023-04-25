@@ -268,8 +268,4 @@ get_population_estimate_path <- function(file_name = NULL, ext = "rds") {
   )
 
   return(pop_path)
-
 }
-
-
-
