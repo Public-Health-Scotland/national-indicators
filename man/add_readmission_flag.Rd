@@ -10,10 +10,10 @@ add_readmission_flag(data)
 \item{data}{A data frame}
 }
 \value{
-A data frame with a new variable, flag28
+A data frame with a new variable, emergency_readm_28
 }
 \description{
 An emergency readmission is defined as an admission with
 codes 20, 21, 22 or between 30-39. If the person's next admission is within
-28 days of the previous one and is an emergency, set \code{flag28} = \code{TRUE}.
+28 days of the previous one and is an emergency, set \code{emergency_readm_28} = \code{TRUE}.
 }
