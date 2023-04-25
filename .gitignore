@@ -20,3 +20,6 @@
 
 # MacOS folder attributes files #
 .DS_Store
+
+# Folder areas #
+Lookups/
