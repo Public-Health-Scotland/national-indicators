@@ -40,7 +40,7 @@ create_population_lookup <- function(
   # locality lookup to get locality names
   loc_pops <- dplyr::left_join(dz_pops, temp_pc, by = "datazone2011") %>%
     dplyr::left_join(., readr::read_rds(locality_path),
-              by = "datazone2011"
+      by = "datazone2011"
     ) %>%
     # Aggregate populations to locality level
     dplyr::group_by(year, lca, hscp_locality) %>%
@@ -61,8 +61,8 @@ create_population_lookup <- function(
     dplyr::select(-name) %>%
     # Make C&S a partnership
     dplyr::mutate(temp_part = dplyr::if_else(lca == "Clackmannanshire" | lca == "Stirling",
-                               "Clackmannanshire and Stirling",
-                               NA_character_
+      "Clackmannanshire and Stirling",
+      NA_character_
     )) %>%
     tidyr::pivot_longer(
       cols = c(lca, temp_part),
@@ -74,8 +74,8 @@ create_population_lookup <- function(
     add_all_grouping("hscp_locality", "All") %>%
     # Create Scotland totals
     dplyr::mutate(temp_part = dplyr::if_else(partnership == "Clackmannanshire and Stirling",
-                               NA_character_,
-                               "Scotland"
+      NA_character_,
+      "Scotland"
     )) %>%
     tidyr::pivot_longer(
       cols = c(partnership, temp_part),
@@ -95,6 +95,34 @@ create_population_lookup <- function(
       locality = hscp_locality
     )
 
+  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{latest_update()}.parquet"))
+
   return(loc_pops)
 }
 
+#' Read the population lookup if one exists, otherwise create one
+#'
+#' @param min_year The minimum year to be passed to [create_population_lookup()]
+#' @param update_suffix Defaults to [latest_update()], the suffix of the population lookup
+#' @param ages_required One of "over18", "over65", "over75", selects ony relevant columns
+#'
+#' @return The population lookup, either read from disk or created
+#' @export
+read_population_lookup <- function(min_year,
+                                   update_suffix = latest_update(),
+                                   ages_required = c("over18", "over65", "over75")) {
+  if (file.exists(glue::glue("Lookups/population_lookup_{update_suffix}.parquet")) == TRUE) {
+    loc_pops <- arrow::read_parquet(
+      glue::glue("Lookups/population_lookup_{update_suffix}.parquet")
+    )
+  } else {
+    loc_pops <- create_population_lookup(min_year = min_year)
+  }
+
+  loc_pops <- loc_pops %>% dplyr::select("pop_year",
+                                  "partnership",
+                                  "locality",
+                                  glue::glue("{ages_required}_pop"))
+
+  return(loc_pops)
+}
