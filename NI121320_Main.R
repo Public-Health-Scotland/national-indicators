@@ -55,16 +55,20 @@ ni12_13_20 <- function(year_to_run) {
       record_keydate1 = dplyr::if_else(
         record_keydate1 < lubridate::int_start(interval_finyear),
         lubridate::int_start(interval_finyear) - lubridate::ddays(1),
-        as.POSIXct(record_keydate1)
+        record_keydate1
       ),
-      record_keydate2 = dplyr::case_when(
-        record_keydate2 > lubridate::int_end(interval_finyear) ~ lubridate::int_end(interval_finyear),
-        TRUE ~ as.POSIXct(record_keydate2)
+      record_keydate2 = dplyr::if_else(
+        record_keydate2 > lubridate::int_end(interval_finyear),
+        lubridate::int_end(interval_finyear),
+        record_keydate2
       )
     ) %>%
     tidylog::replace_na(list(record_keydate2 = lubridate::int_end(interval_finyear))) %>%
-    tidylog::rename(admission_date = record_keydate1, discharge_date = record_keydate2) %>%
-    tidylog::mutate(y_los_tot = difftime(discharge_date, admission_date, units = c("days")))
+    tidylog::rename(admission_date = record_keydate1,
+                    discharge_date = record_keydate2) %>%
+    tidylog::mutate(
+      y_los_tot = difftime(discharge_date, admission_date, units = c("days"))
+    )
 
   # SECTION 3 - CALCULATE ADMISSIONS, BEDDAYS, AND COSTS ----
   # Calculate admissions before beddays as the groups don't work properly afterwards
@@ -75,7 +79,7 @@ ni12_13_20 <- function(year_to_run) {
     tidylog::mutate(month = dplyr::if_else(month == "M0", "M12", month)) %>%
     tidylog::left_join(readr::read_rds(get_locality_path()),
                        by = "datazone2011") %>%
-    tidylog::group_by(lca, ca2019name, hscp_locality, month) %>%
+    tidylog::group_by(ca2018, hscp_locality, month) %>%
     tidylog::summarise(admissions = sum(admission_record)) %>%
     tidylog::ungroup()
 
@@ -90,7 +94,7 @@ ni12_13_20 <- function(year_to_run) {
   all_measures <- tidylog::left_join(
     bds_costs,
     admissions,
-    by = c("lca", "ca2019name", "hscp_locality", "month")
+    by = c("ca2018", "hscp_locality", "month")
   )
 
   # SECTION 4 - ADDING 'ALL' GROUPS ----
