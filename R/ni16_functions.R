@@ -5,9 +5,12 @@
 #'
 #' @seealso [connect_to_smra()], [calculate_financial_month()], [get_spd_path()],
 #' [get_locality_path()]
-process_ni16_smra_extract <- function() {
+process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
+
+  smra_query <- glue::glue(readr::read_file("SQL/ni16_smra.sql"))
+
   return_data <-
-          odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni16_smra.sql")) %>%
+          odbc::dbGetQuery(connect_to_smra(), smra_query) %>%
     tibble::as_tibble() %>%
     # For R-standard column names
     janitor::clean_names() %>%
