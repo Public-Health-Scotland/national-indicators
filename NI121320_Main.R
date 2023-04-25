@@ -29,7 +29,7 @@ ni12_13_20 <- function(year_to_run) {
     tidylog::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
     tidylog::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
     # Multiply all costs by 1.01^uplift
-    # mutate(across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
+    # dplyr::mutate(dplyr::across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
     # Aggregate to CIJ level
     tidylog::group_by(year, anon_chi, cij_marker) %>%
     tidylog::summarise(
@@ -52,7 +52,7 @@ ni12_13_20 <- function(year_to_run) {
     tidylog::mutate(
       keydate1_dateformat = dplyr::if_else(
         keydate1_dateformat < lubridate::int_start(interval_finyear),
-        lubridate::int_start(interval_finyear) - ddays(1),
+        lubridate::int_start(interval_finyear) - lubridate::ddays(1),
         as.POSIXct(keydate1_dateformat)
       ),
       keydate2_dateformat = dplyr::case_when(
@@ -177,18 +177,18 @@ ni_final_monthly <- list(
 
 ni_final_quarterly <- ni_final_monthly %>%
   purrr::map_dfr(~
-    mutate(.x, data = case_when(
+    dplyr::mutate(.x, data = dplyr::case_when(
       data %in% c("M1", "M2", "M3") ~ "Q1",
       data %in% c("M4", "M5", "M6") ~ "Q2",
       data %in% c("M7", "M8", "M9") ~ "Q3",
       data %in% c("M10", "M11", "M12") ~ "Q4",
       data == "Annual" ~ "Annual"
     )) %>%
-      group_by(indicator, year, data, partnership, locality) %>%
-      summarise(
-        across(c(value, scotland, numerator), sum),
-        across(denominator, max)
+      dplyr::group_by(indicator, year, data, partnership, locality) %>%
+      dplyr::summarise(
+        dplyr::across(c(value, scotland, numerator), sum),
+        dplyr::across(denominator, max)
       ))
-ni_final_monthly <- bind_rows(ni_final_monthly)
-write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly.rds", compress = "gz")
-write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly.rds", compress = "gz")
+ni_final_monthly <- dplyr::bind_rows(ni_final_monthly)
+readr::write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly.rds", compress = "gz")
+readr::write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly.rds", compress = "gz")

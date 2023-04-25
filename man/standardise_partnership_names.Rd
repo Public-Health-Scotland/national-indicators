@@ -7,7 +7,7 @@
 standardise_partnership_names(partnership_name)
 }
 \arguments{
-\item{partnership_name}{A vector of existing poartnership names}
+\item{partnership_name}{A vector of existing partnership names}
 }
 \value{
 A vector of partnership names in the NI expected format

@@ -73,7 +73,7 @@ totals_list <- smra_and_gro_extract %>%
 # Apply the same aggregate to each member of the list
 ni14_final <- totals_list %>%
   purrr::map_dfr(~ dplyr::group_by(.x, year, fin_month, partnership, ca2018, hscp_locality) %>%
-    dplyr::summarise(across(flag28:stay, sum)) %>%
+    dplyr::summarise(dplyr::across(flag28:stay, sum)) %>%
     dplyr::ungroup())
 
 ni14_cs <- add_clacks_and_stirling(ni14_final, partnership)
@@ -83,18 +83,18 @@ final_test <- ni14_cs %>% dplyr::mutate(value = (flag28 / stay) * 1000)
 
 # Create Scotland column
 just_scotland <- ni14_final %>%
-  filter(
+  dplyr::filter(
     partnership == "Scotland" & hscp_locality == "All"
   ) %>%
-  rename(scotland = value) %>%
-  select(year, month, scotland)
-ni14_final <- left_join(ni14_final, just_scotland, by = c("month", "year")) %>%
-  mutate(indicator1 = "NI14")
+  dplyr::rename(scotland = value) %>%
+  dplyr::select(year, month, scotland)
+ni14_final <- dplyr::left_join(ni14_final, just_scotland, by = c("month", "year")) %>%
+  dplyr::mutate(indicator1 = "NI14")
 rm(just_scotland)
 
 # Rename variables for Tableau
 ni14_final <- ni14_final %>%
-  rename(
+  dplyr::rename(
     year1 = year,
     data1 = month,
     partnership1 = partnership,
@@ -103,18 +103,18 @@ ni14_final <- ni14_final %>%
   )
 
 # Write out full data frame
-write_rds(ni14_final, "ni14-all-data.rds")
+readr::write_rds(ni14_final, "ni14-all-data.rds")
 
-write_xlsx(ni14_final, "ni14-test.xlsx")
+writexl::write_xlsx(ni14_final, "ni14-test.xlsx")
 
-test <- ni14_final %>% filter(hscp_locality == "All" & data1 == "Annual")
+test <- ni14_final %>% dplyr::filter(hscp_locality == "All" & data1 == "Annual")
 
 # For Tableau, we don't want Scotland as a partnership
-# tableau <- ni14_final %>% filter(partnership1 != "Scotland")
-# write_rds(tableau, "monthly-ni14-final.rds")
+# tableau <- ni14_final %>% dplyr::filter(partnership1 != "Scotland")
+# readr::write_rds(tableau, "monthly-ni14-final.rds")
 # rm(tableau)
 
 # For the MI worksheet, we don't want locality-level data
-# mi <- ni14_final %>% filter(locality == "All")
-# write_sav(mi, "mi-ni14-final.sav")
+# mi <- ni14_final %>% dplyr::filter(locality == "All")
+# haven::write_sav(mi, "mi-ni14-final.sav")
 # rm(mi, ni14_final)

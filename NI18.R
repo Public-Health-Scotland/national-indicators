@@ -6,13 +6,13 @@ answer <- readline(
     "Do you want to pull old data, or get new data? Valid answers: 'Old', 'New': "
 )
 
-if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from the new 'final' spreadsheet
-  data <- read_xlsx(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "MI_Copy_NI18.xlsx"),
+if (stringr::str_detect(answer, stringr::regex("old", ignore_case = TRUE))) { # Read the data from the new 'final' spreadsheet
+  data <- readxl::read_xlsx(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "MI_Copy_NI18.xlsx"),
     sheet = "Data",
     guess_max = 12000
   ) %>%
-    filter(Indicator == "NI18") %>%
-    select(
+    dplyr::filter(Indicator == "NI18") %>%
+    dplyr::select(
       Year1 = Year,
       value = Rate,
       numerator = Numerator,
@@ -24,19 +24,19 @@ if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from
 
   # Take the Scotland row and turn it into a column and join it back on
   data <- data %>%
-    left_join(
-      filter(., Partnership1 == "Scotland") %>%
-        rename(scotland = value) %>%
-        select(Year1, scotland)
+    dplyr::left_join(
+      dplyr::filter(., Partnership1 == "Scotland") %>%
+        dplyr::rename(scotland = value) %>%
+        dplyr::select(Year1, scotland)
     ) %>%
-    filter(Partnership1 != "Scotland")
+    dplyr::filter(Partnership1 != "Scotland")
 
   # Create extra variables which are needed and reorder
   data <- data %>%
-    mutate(
+    dplyr::mutate(
       locality = "All"
     ) %>%
-    select(
+    dplyr::select(
       Year1,
       value,
       scotland,
@@ -48,75 +48,75 @@ if (str_detect(answer, regex("old", ignore_case = TRUE))) { # Read the data from
       data1
     ) %>%
     # Sort the data nicely
-    arrange(Year1, Partnership1)
+    dplyr::arrange(Year1, Partnership1)
 
   # Turn year into financial year
   # Create a vectorised function
   year_to_fy <- Vectorize(function(year) {
     year <- as.character(year)
-    year_2digit <- as.integer(str_extract(year, "\\d\\d$"))
+    year_2digit <- as.integer(tidyr::str_extract(year, "\\d\\d$"))
 
-    fy <- str_glue(year, "/", as.character(year_2digit + 1))
+    fy <- stringr::str_glue(year, "/", as.character(year_2digit + 1))
     return(fy)
   })
 
   # Use the funtion
-  data <- data %>% mutate(Year1 = year_to_fy(Year1))
+  data <- data %>% dplyr::mutate(Year1 = year_to_fy(Year1))
 
   # Write out for Tableau
   data %>%
     # Set the correct length for matching to other SPSS files
-    mutate(locality = str_pad(locality, 68, side = "right")) %>%
-    write_sav(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "NI 18-Final.zsav", compress = "zsav"))
-} else if (str_detect(answer, regex("new", ignore_case = T)) == T) {
-  raw_data <- read_excel(
+    dplyr::mutate(locality = stringr::str_pad(locality, 68, side = "right")) %>%
+    haven::write_sav(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "NI 18-Final.zsav", compress = "zsav"))
+} else if (stringr::str_detect(answer, stringr::regex("new", ignore_case = T)) == T) {
+  raw_data <- readxl::read_excel(
     "NI 18/2022-04-26-balance-of-care.xlsm",
     sheet = "T1 Data",
     range = "B1:Q133",
     col_names = TRUE,
     col_types = rep(c("text", "numeric"), times = c(3, 13))
   ) %>%
-    rename(identifier = ...1, partnership_no = ...2, partnership = ...3) %>%
-    select(identifier, partnership_no, partnership, contains("2021")) %>%
-    pivot_wider(
+    dplyr::rename(identifier = ...1, partnership_no = ...2, partnership = ...3) %>%
+    dplyr::select(identifier, partnership_no, partnership, contains("2021")) %>%
+    tidyr::pivot_wider(
       names_from = identifier,
       values_from = contains("20")
     ) %>%
-    clean_names() %>%
-    mutate(
+    janitor::clean_names() %>%
+    dplyr::mutate(
       numerator = total_pc,
       denominator = total_pc + ch_res + cc_census,
       value = percentage
     )
 
   c_and_s <- raw_data %>%
-    filter(partnership == "Clackmannanshire" | partnership == "Stirling") %>%
-    mutate(partnership = "Clackmannanshire and Stirling") %>%
-    group_by(partnership) %>%
-    summarise(
+    dplyr::filter(partnership == "Clackmannanshire" | partnership == "Stirling") %>%
+    dplyr::mutate(partnership = "Clackmannanshire and Stirling") %>%
+    dplyr::group_by(partnership) %>%
+    dplyr::summarise(
       numerator = sum(numerator),
       denominator = sum(denominator)
     ) %>%
-    ungroup() %>%
-    mutate(value = numerator / denominator)
+    dplyr::ungroup() %>%
+    dplyr::mutate(value = numerator / denominator)
 
-  ni18_new <- bind_rows(raw_data, c_and_s) %>%
-    mutate(
+  ni18_new <- dplyr::bind_rows(raw_data, c_and_s) %>%
+    dplyr::mutate(
       indicator1 = "NI18",
       year1 = "2021/22",
       locality = "All",
       data1 = "Annual"
     ) %>%
-    select(year1, value,
+    dplyr::select(year1, value,
       partnership1 = partnership, numerator, locality, indicator1,
       denominator, data1
     )
 
-  ni18_final <- left_join(ni18_new %>% filter(partnership1 != "Scotland"),
-    ni18_new %>% filter(partnership1 == "Scotland") %>%
-      rename(scotland = value) %>%
-      select(year1, scotland),
+  ni18_final <- dplyr::left_join(ni18_new %>% dplyr::filter(partnership1 != "Scotland"),
+    ni18_new %>% dplyr::filter(partnership1 == "Scotland") %>%
+      dplyr::rename(scotland = value) %>%
+      dplyr::select(year1, scotland),
     by = "year1"
   ) %>%
-    relocate(scotland, .after = "value")
+    dplyr::relocate(scotland, .after = "value")
 }

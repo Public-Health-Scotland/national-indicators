@@ -82,7 +82,7 @@ join_recalculated_scotland_column <- function(data) {
     # Get the dataset without Scotland values as these will be wrong
     data %>%
       dplyr::filter(Partnership1 != "Scotland") %>%
-      dplyr::select(-"Scotland"),
+      dplyr::select(!"Scotland"),
     # Put the Scotland values into the Scotland column and use this as a lookup
     # for the above
     data %>%
@@ -90,4 +90,6 @@ join_recalculated_scotland_column <- function(data) {
       dplyr::select("Year1", "Indicator1", "Data1", "Value") %>%
       dplyr::rename(Scotland = Value)
   )
+
+  return(return_data)
 }

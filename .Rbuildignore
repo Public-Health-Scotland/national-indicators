@@ -1,2 +1,4 @@
 ^national-indicators\.Rproj$
 ^\.Rproj\.user$
+^codecov\.yml$
+^\.github$
