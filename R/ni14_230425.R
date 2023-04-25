@@ -39,7 +39,7 @@ process_ni14_gro_extract_new <- function(min_date = "01-APR-2022") {
   return(gro_extract)
 }
 
-match_smra_and_deaths <- function(smra_data, nrs_data) {
+match_smra_and_deaths_new <- function(smra_data, nrs_data) {
   matched_extracts <-
     dplyr::left_join(
       smra_data,
@@ -60,12 +60,13 @@ match_smra_and_deaths <- function(smra_data, nrs_data) {
     )
 }
 
-match_on_geographies <- function(data) {
+match_on_geographies_new <- function(data) {
   return_data <- dplyr::left_join(
     data,
     readr::read_rds(get_spd_path()),
     by = dplyr::join_by("postcode" == "pc7")
   ) %>%
+    dplyr::filter(!is_missing(.data$datazone2011)) %>%
     dplyr::left_join(
       readr::read_rds(get_locality_path()) %>%
         dplyr::select("datazone2011", "hscp_locality"),
@@ -75,7 +76,7 @@ match_on_geographies <- function(data) {
   return(return_data)
 }
 
-calculate_locality_totals <- function(data) {
+calculate_locality_totals_new <- function(data) {
   # Aggregate to locality-level at the lowest
   return_data <- data %>%
     dplyr::mutate(
