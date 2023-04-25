@@ -4,7 +4,7 @@ cost_names <- tolower(c(paste0(month.abb, "_cost")))
 
 ni12_13_20 <- function(year_to_run) {
   # SECTION 1 - WRANGLE SLF ----
-  # Load in dates of financial year for calcuations later
+  # Load in dates of financial year for calculations later
   interval_finyear <- lubridate::interval(
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 1, 2), "-04-01")),
     lubridate::ymd(stringr::str_c("20", stringr::str_sub(year_to_run, 3, 4), "-03-31"))
