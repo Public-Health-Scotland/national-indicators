@@ -16,7 +16,7 @@ process_ni16_smra_extract <- function() {
     # Filter out any records where the diagnosis didn't involve a fall
     dplyr::filter(dplyr::if_any(
       c(main_condition:other_condition_5),
-      ~ . %in% falls_diagnosis_codes()
+      ~ . %in% paste0("W", stringr::str_pad(0:19, 2, "left", "0"))
     )) %>%
     # Create variables for different date levels
     dplyr::mutate(
