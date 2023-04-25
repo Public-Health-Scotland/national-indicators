@@ -46,19 +46,20 @@ create_population_lookup <- function(
     dplyr::group_by(year, lca, hscp_locality) %>%
     dplyr::summarise(dplyr::across(over18_pop:over75_pop, sum), .groups = "keep")
 
+  latest_pop_year <- loc_pops %>%
+    dplyr::pull(year) %>%
+    max()
+
   loc_pops <- loc_pops %>%
     # Create dummy years that we do not have estimates for yet
-    # TODO Make this automated so we don't have to change it
-    dplyr::mutate(
-      temp_year1 = dplyr::if_else(year == 2021, 2022, NA_real_),
-      temp_year2 = dplyr::if_else(year == 2021, 2023, NA_real_)
+    dplyr::bind_rows(
+      purrr::map_df(1:3, ~
+        loc_pops %>%
+          dplyr::filter(year == latest_pop_year) %>%
+          dplyr::mutate(
+            year = year + .x
+          ))
     ) %>%
-    tidyr::pivot_longer(
-      cols = c(year, temp_year1, temp_year2),
-      values_to = "year",
-      values_drop_na = TRUE
-    ) %>%
-    dplyr::select(-name) %>%
     # Make C&S a partnership
     dplyr::mutate(temp_part = dplyr::if_else(lca == "Clackmannanshire" | lca == "Stirling",
       "Clackmannanshire and Stirling",
@@ -119,10 +120,12 @@ read_population_lookup <- function(min_year,
     loc_pops <- create_population_lookup(min_year = min_year)
   }
 
-  loc_pops <- loc_pops %>% dplyr::select("pop_year",
-                                  "partnership",
-                                  "locality",
-                                  glue::glue("{ages_required}_pop"))
+  loc_pops <- loc_pops %>% dplyr::select(
+    "pop_year",
+    "partnership",
+    "locality",
+    glue::glue("{ages_required}_pop")
+  )
 
   return(loc_pops)
 }
