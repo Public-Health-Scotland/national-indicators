@@ -1,8 +1,22 @@
-create_population_lookup <- function() {
+#' Create a population lookup for use with NIs
+#'
+#' @param min_year The earliest year to use in the lookup
+#' @param pop_est_path See [get_population_estimate_path()] or use custom path
+#' @param spd_path See [get_spd_path()] or use custom path
+#' @param locality_path See [get_locality_path()] or use custom path
+#'
+#' @return A data frame to use as a population lookup for: over 18s, over 65s,
+#' and over 75s
+#' @export
+create_population_lookup <- function(
+    min_year,
+    pop_est_path = get_population_estimate_path(),
+    spd_path = get_spd_path(),
+    locality_path = get_locality_path()) {
   # Read in the most recent populations file
-  dz_pops <- readr::read_rds(get_population_estimate_path()) %>%
+  dz_pops <- readr::read_rds(pop_est_path) %>%
     # Filter out anything before 2013 as we don't use this data
-    dplyr::filter(year >= 2013) %>%
+    dplyr::filter(year >= min_year) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
     dplyr::mutate(
       over18_pop = rowSums(dplyr::across(age18:age90plus)),
@@ -17,7 +31,7 @@ create_population_lookup <- function() {
 
   # Read in the lookup for the Scottish Postcode Directory and aggregate it so we
   # have one partnership name for each datazone
-  temp_pc <- readr::read_rds(get_spd_path()) %>%
+  temp_pc <- readr::read_rds(spd_path) %>%
     dplyr::select(ca2019name, datazone2011) %>%
     dplyr::group_by(datazone2011) %>%
     dplyr::summarise(lca = dplyr::first(ca2019name))
@@ -25,7 +39,7 @@ create_population_lookup <- function() {
   # Join the Datazone level populations to the lookup above, then join to the
   # locality lookup to get locality names
   loc_pops <- dplyr::left_join(dz_pops, temp_pc, by = "datazone2011") %>%
-    dplyr::left_join(., readr::read_rds(get_locality_path()),
+    dplyr::left_join(., readr::read_rds(locality_path),
               by = "datazone2011"
     ) %>%
     # Aggregate populations to locality level
