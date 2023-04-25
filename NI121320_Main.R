@@ -1,7 +1,4 @@
 # NI 12, 13 and 20
-
-cost_names <- tolower(c(paste0(month.abb, "_cost")))
-
 ni12_13_20 <- function(year_to_run) {
   # SECTION 1 - WRANGLE SLF ----
   # Load in dates of financial year for calculations later
@@ -11,6 +8,7 @@ ni12_13_20 <- function(year_to_run) {
   )
   financial_year <- glue::glue("20{stringr::str_sub(year_to_run, 1, 2)}/{stringr::str_sub(year_to_run, -2)}")
 
+  cost_names <- tolower(paste0(month.abb, "_cost"))
   # Read in SLF episode file
   slf <- slfhelper::read_slf_episode(
     year_to_run,
