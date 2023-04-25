@@ -22,5 +22,5 @@ we can use this function to keep the ages in that column but also add rows for '
 }
 \examples{
 tibble::tribble(~age, ~value, "1", 3, "2", 5, "3", 6) \%>\%
-add_all_grouping("age", "All ages")
+  add_all_grouping("age", "All ages")
 }
