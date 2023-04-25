@@ -7,7 +7,7 @@
 #' [get_locality_path()]
 process_ni16_smra_extract <- function() {
   return_data <-
-          odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni16_smra.sql"))
+          odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni16_smra.sql")) %>%
     tibble::as_tibble() %>%
     # For R-standard column names
     janitor::clean_names() %>%
@@ -48,7 +48,6 @@ process_ni16_smra_extract <- function() {
 #'
 #' @return The extract aggregated to chosen date level, with falls as the summary variable
 aggregate_to_date_level <- function(data, date_level = c("calendar", "financial")) {
-date_level <- match.args(date_level)
 
   return_data <- data %>%
     # Either selects c("fin_year", "fin_month") or c("cal_year", "cal_month")
@@ -118,13 +117,15 @@ add_additional_groups <- function(data) {
 
 #' Calculate the final NI16 values for calendar year and financial year
 #'
+#' @param write_to_disk Boolean parameter, choose to write the output to disk or not
+#'
 #' @return A list of data frames, one for calendar year named `calendar` and one
 #' for financial year named `financial`
 #' @export
 #'
 #' @seealso [process_ni16_smra_extract()], [aggregate_to_date_level()],
 #' [add_additional_groups()], [create_population_lookup()]
-calculate_ni16_final_output <- function() {
+calculate_ni16_final_output <- function(write_to_disk = TRUE) {
   smra_extract <- process_ni16_smra_extract()
 
   date_level_list <- list(
@@ -148,6 +149,11 @@ calculate_ni16_final_output <- function() {
         denominator = over65_pop,
         time_period = month
       ))
+
+  if (write_to_disk == TRUE) {
+    arrow::write_parquet(date_level_list[["calendar"]], "Outputs/NI16_calendar_year.parquet")
+    arrow::write_parquet(date_level_list[["financial"]], "Outputs/NI16_financial_year.parquet")
+  }
 
   return(date_level_list)
 }
