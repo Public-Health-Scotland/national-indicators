@@ -1,5 +1,4 @@
 process_ni14_smra_extract_new <- function(min_date = "01-APR-2022") {
-
   smra_query <- glue::glue(readr::read_file("SQL/ni14_smra.sql"))
 
   # Read in data
@@ -26,9 +25,4 @@ process_ni14_smra_extract_new <- function(min_date = "01-APR-2022") {
     tibble::as_tibble() %>%
     add_readmission_flag()
   return(smra_extract)
-
 }
-
-
-
-
