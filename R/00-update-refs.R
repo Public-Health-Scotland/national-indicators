@@ -63,16 +63,3 @@ slf_indicator_update_periods <- function() {
     )
   )
 }
-
-#' Vector of diagnosis codes related to falls
-#'
-#' @return A vector containing the following diagnosis codes:
-#' c("W00", "W01", "W02", "W03", "W04", "W05", "W06", "W07", "W08",
-#' "W09", "W10", "W11", "W12", "W13", "W14", "W15", "W16", "W17",
-#' "W18", "W19")
-#' @export
-#'
-#' @family Initialisation
-falls_diagnosis_codes <- function() {
-  falls_codes <- paste0("W", stringr::str_pad(0:19, 2, "left", "0"))
-}
