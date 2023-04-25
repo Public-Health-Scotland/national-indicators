@@ -6,8 +6,8 @@
 connect_to_smra <- function() {
   smra_connect <- odbc::dbConnect(odbc::odbc(),
     dsn = "SMRA",
-    uid = "", # .rs.askForPassword("SMRA Username:"),
-    pwd = "" # .rs.askForPassword("SMRA Password:")
+    uid = .rs.askForPassword("SMRA Username:"),
+    pwd = .rs.askForPassword("SMRA Password:")
   )
   return(smra_connect)
 }
