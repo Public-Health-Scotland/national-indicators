@@ -146,9 +146,11 @@ to_fin_year <- function(df) {
 }
 
 # Populations ----
-get_loc_pops <- function(est_years) {
-  dz_pops <- readr::read_rds(fs::path("/", "conf", "linkage", "output", "lookups", "Unicode", "Populations", "Estimates", glue::glue("DataZone2011_pop_est_{est_years}.rds"))) %>%
-    dplyr::filter(year >= 2013) %>%
+get_loc_pops <- function(ext = "rds", min_year = 2013) {
+  dz_pops <- readr::read_rds(
+    get_loc_pops_path(ext = ext)
+  ) %>%
+    dplyr::filter(year >= min_year) %>%
     dplyr::mutate(
       over18_pop = rowSums(dplyr::across("age18":"age90plus")),
       over65_pop = rowSums(dplyr::across("age65":"age90plus")),

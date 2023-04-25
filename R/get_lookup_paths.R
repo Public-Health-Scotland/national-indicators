@@ -244,3 +244,15 @@ get_simd_path <- function(file_name = NULL, ext = "rds") {
 
   return(simd_path)
 }
+
+get_loc_pops_path <- function(ext = "rds") {
+  pops_dir <- fs::path(get_lookups_dir(), "Populations", "Estimates")
+
+  loc_pops_path <- get_file_path(
+    directory = pops_dir,
+    ext = ext,
+    file_name_regexp = stringr::str_glue("DataZone2011_pop_est_\\d{{4}}_\\d{{4}}\\.rds")
+  )
+
+  return(loc_pops_path)
+}
