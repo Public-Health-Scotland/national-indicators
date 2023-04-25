@@ -205,13 +205,12 @@ get_spd_path <- function(file_name = NULL, ext = "rds") {
 #'
 #' @return An [fs::path()] to the Scottish Postcode Directory
 #' @export
-get_locality_path <- function(file_name = NULL, ext = "rds") {
+get_locality_path <- function(ext = "rds") {
   locality_dir <-
     fs::path(get_lookups_dir(), "Geography", "HSCP Locality")
 
   locality_path <- get_file_path(
     directory = locality_dir,
-    file_name = file_name,
     ext = ext,
     file_name_regexp = glue::glue("HSCP Localities_DZ11_Lookup_\\d+?\\.{ext}")
   )

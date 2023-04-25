@@ -160,8 +160,7 @@ get_loc_pops <- function(ext = "rds", min_year = 2013) {
     dplyr::group_by(year, datazone2011) %>%
     dplyr::summarise(dplyr::across("over18_pop":"over75_pop", sum), .groups = "keep")
 
-  temp_pc <- get_pc_lookup() %>%
-    dplyr::select("ca2019name", "datazone2011") %>%
+  temp_pc <- get_spd(c("ca2019name", "datazone2011")) %>%
     dplyr::group_by(datazone2011) %>%
     dplyr::summarise(lca = dplyr::first(ca2019name))
 
@@ -300,4 +299,18 @@ create_monthly_beddays <- function(data, year,
     dplyr::ungroup()
 
   return(data)
+}
+
+get_locality_lookup <- function(path = get_locality_path()) {
+  readr::read_rds(get_locality_path())
+}
+
+get_spd <- function(vars = NULL, ext = "rds") {
+  spd <- readr::read_rds(get_spd_path(ext = ext))
+
+  if (!is.null(vars)) {
+    spd <- dplyr::select(spd, dplyr::all_of(vars))
+  }
+
+  return(spd)
 }
