@@ -38,9 +38,8 @@ ni12_13_20 <- function(year_to_run) {
       keydate2_dateformat = max(keydate2_dateformat),
       dplyr::across(c("lca", "datazone2011"), last),
       dplyr::across(cost_names, sum, na.rm = TRUE),
-      .groups = "keep"
+      .groups = "drop"
     ) %>%
-    dplyr::ungroup() %>%
     dplyr::collect()
 
 
