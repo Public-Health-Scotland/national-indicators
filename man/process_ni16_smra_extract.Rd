@@ -5,7 +5,7 @@
 \title{Read the SMRA extract for NI16, filter to records involving falls,
 and match on geographies}
 \usage{
-process_ni16_smra_extract()
+process_ni16_smra_extract(min_date = "01-APR-2013")
 }
 \value{
 A data frame

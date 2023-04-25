@@ -4,7 +4,10 @@
 \alias{calculate_ni16_final_output}
 \title{Calculate the final NI16 values for calendar year and financial year}
 \usage{
-calculate_ni16_final_output()
+calculate_ni16_final_output(write_to_disk = TRUE)
+}
+\arguments{
+\item{write_to_disk}{Boolean parameter, choose to write the output to disk or not}
 }
 \value{
 A list of data frames, one for calendar year named \code{calendar} and one
