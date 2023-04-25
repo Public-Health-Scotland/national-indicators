@@ -133,11 +133,10 @@ calculate_ni16_final_output <- function() {
   ) %>%
     purrr::map(add_additional_groups) %>%
     purrr::map(., ~ dplyr::mutate(.x, pop_year = stringr::str_sub(year, 1, 4)) %>%
-      dplyr::left_join(create_population_lookup(),
+      dplyr::left_join(read_population_lookup(min_year = 2013,
+                                              ages_required = "over65"),
         by = c("pop_year", "locality", "partnership")
       ) %>%
-      # We only require the over 65 population
-      dplyr::select(-over18_pop, -over75_pop) %>%
       # NI16 value is falls rate per 1000 population
       dplyr::mutate(
         value = (falls / over65_pop) * 1000,
