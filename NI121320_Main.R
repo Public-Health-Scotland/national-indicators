@@ -26,23 +26,21 @@ ni12_13_20 <- function(year_to_run) {
     dplyr::filter(recid %in% c("01B", "04B", "GLS")) %>%
     # We only want over 18s, and the three locations are dental hospitals which we don't include
     dplyr::filter(
-      (chi != ""| is.na(chi)) & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")
+      (chi != "" | is.na(chi)) & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")
     ) %>%
     # Recode patient type 18 to Non-Elective and filter out non-emergency admissions
     dplyr::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
+    # Filter to only emergency CIJ stays
     dplyr::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
-    # Multiply all costs by 1.01^uplift
-    # dplyr::mutate(dplyr::across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
     # Aggregate to CIJ level
     dplyr::group_by(year, chi, cij_marker) %>%
     dplyr::summarise(
       record_keydate1 = min(record_keydate1),
       record_keydate2 = max(record_keydate2),
-      dplyr::across(c("lca", "datazone2011"), last),
+      dplyr::across(c("lca", "datazone2011"), dplyr::last),
       dplyr::across(cost_names, sum, na.rm = TRUE),
       .groups = "drop"
     ) %>%
-    dplyr::ungroup() %>%
     dplyr::collect()
 
 
