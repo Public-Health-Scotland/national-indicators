@@ -19,9 +19,9 @@ create_population_lookup <- function(
     dplyr::filter(year >= min_year) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
     dplyr::mutate(
-      over18_pop = rowSums(dplyr::across(age18:age90plus)),
-      over65_pop = rowSums(dplyr::across(age65:age90plus)),
-      over75_pop = rowSums(dplyr::across(age75:age90plus))
+      over18_pop = rowSums(dplyr::pick(age18:age90plus)),
+      over65_pop = rowSums(dplyr::pick(age65:age90plus)),
+      over75_pop = rowSums(dplyr::pick(age75:age90plus))
     ) %>%
     # Get rid of the populations by age
     dplyr::select(-c("age0":"age90plus")) %>%
