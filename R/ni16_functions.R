@@ -15,7 +15,7 @@ process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
     # For R-standard column names
     janitor::clean_names() %>%
     # Change diagnosis codes to first three characters
-    dplyr::mutate(dplyr::across(main_condition:other_condition_5, stringr::str_sub, 1, 3)) %>%
+    dplyr::mutate(dplyr::across(main_condition:other_condition_5, ~ stringr::str_sub(.x, 1, 3))) %>%
     # Filter out any records where the diagnosis didn't involve a fall
     dplyr::filter(dplyr::if_any(
       c(main_condition:other_condition_5),
