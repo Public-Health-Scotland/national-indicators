@@ -47,7 +47,7 @@ process_ni14_smra_extract <- function() {
   # Read in data
   smra_extract <-
     tibble::as_tibble(
-      odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni14_smra.sql"))
+      odbc::dbGetQuery(connect_to_smra(), glue::glue(readr::read_file("SQL/ni14_smra.sql")))
     ) %>%
     # For R-standard column names
     janitor::clean_names() %>%
