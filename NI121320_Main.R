@@ -12,34 +12,37 @@ ni12_13_20 <- function(year_to_run) {
 
   cost_names <- tolower(paste0(month.abb, "_cost"))
   # Read in SLF episode file
-  slf <- slfhelper::read_slf_episode(
-    year_to_run,
-    columns = c(
-      "year", "anon_chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
-      "keydate1_dateformat", "keydate2_dateformat",
+  slf <- arrow::read_parquet(
+    "/conf/sourcedev/Source_Linkage_File_Updates/1920/source-episode-file-1920_ni_version.parquet",
+    col_select = c(
+      "year", "chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
+      "record_keydate1", "record_keydate2",
       "lca", "location", "datazone2011",
       "yearstay", cost_names
     )
   ) %>%
-    dtplyr::lazy_dt() %>%
+    data.table::as.data.table() %>%
     # We only want the emergency admission records.
-    tidylog::filter(recid %in% c("01B", "04B", "GLS")) %>%
+    dplyr::filter(recid %in% c("01B", "04B", "GLS")) %>%
     # We only want over 18s, and the three locations are dental hospitals which we don't include
-    tidylog::filter(anon_chi != "" & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")) %>%
+    dplyr::filter(
+      (chi != ""| is.na(chi)) & age >= 18 & datazone2011 != "" & (location != "T113H" | location != "S206H" | location != "G106H")
+    ) %>%
     # Recode patient type 18 to Non-Elective and filter out non-emergency admissions
-    tidylog::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
-    tidylog::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
+    dplyr::mutate(cij_pattype = dplyr::if_else(cij_admtype == 18, "Non-Elective", cij_pattype)) %>%
+    dplyr::filter(cij_pattype == "Non-Elective" & (smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
     # Multiply all costs by 1.01^uplift
     # dplyr::mutate(dplyr::across(cost_names, .fns = ~ (. * 1.01^uplift))) %>%
     # Aggregate to CIJ level
-    tidylog::group_by(year, anon_chi, cij_marker) %>%
-    tidylog::summarise(
-      keydate1_dateformat = min(keydate1_dateformat),
-      keydate2_dateformat = max(keydate2_dateformat),
+    dplyr::group_by(year, chi, cij_marker) %>%
+    dplyr::summarise(
+      record_keydate1 = min(record_keydate1),
+      record_keydate2 = max(record_keydate2),
       dplyr::across(c("lca", "datazone2011"), last),
       dplyr::across(cost_names, sum, na.rm = TRUE),
       .groups = "drop"
     ) %>%
+    dplyr::ungroup() %>%
     dplyr::collect()
 
 
@@ -47,22 +50,22 @@ ni12_13_20 <- function(year_to_run) {
   # We only want admissions within the financial year to be counted. However, we need to keep the costs for said records so
   # we don't just filter them out
   dates <- slf %>%
-    tidylog::mutate(admission_record = keydate1_dateformat %within% interval_finyear) %>%
+    tidylog::mutate(admission_record = record_keydate1 %within% interval_finyear) %>%
     # If the start date of a record is before the start of the financial year, set it to one day before (31st March XXYY)
     # If the end date of a record is after the end of the financial year, set it to the end
     tidylog::mutate(
-      keydate1_dateformat = dplyr::if_else(
-        keydate1_dateformat < lubridate::int_start(interval_finyear),
+      record_keydate1 = dplyr::if_else(
+        record_keydate1 < lubridate::int_start(interval_finyear),
         lubridate::int_start(interval_finyear) - lubridate::ddays(1),
-        as.POSIXct(keydate1_dateformat)
+        as.POSIXct(record_keydate1)
       ),
-      keydate2_dateformat = dplyr::case_when(
-        keydate2_dateformat > lubridate::int_end(interval_finyear) ~ lubridate::int_end(interval_finyear),
-        TRUE ~ as.POSIXct(keydate2_dateformat)
+      record_keydate2 = dplyr::case_when(
+        record_keydate2 > lubridate::int_end(interval_finyear) ~ lubridate::int_end(interval_finyear),
+        TRUE ~ as.POSIXct(record_keydate2)
       )
     ) %>%
-    tidylog::replace_na(list(keydate2_dateformat = lubridate::int_end(interval_finyear))) %>%
-    tidylog::rename(admission_date = keydate1_dateformat, discharge_date = keydate2_dateformat) %>%
+    tidylog::replace_na(list(record_keydate2 = lubridate::int_end(interval_finyear))) %>%
+    tidylog::rename(admission_date = record_keydate1, discharge_date = record_keydate2) %>%
     tidylog::mutate(y_los_tot = difftime(discharge_date, admission_date, units = c("days")))
 
   # SECTION 3 - CALCULATE ADMISSIONS, BEDDAYS, AND COSTS ----
@@ -72,18 +75,25 @@ ni12_13_20 <- function(year_to_run) {
     # Recode Month here to match on to bed days and costs
     tidylog::mutate(month = stringr::str_c("M", as.character((lubridate::month(admission_date) - 3) %% 12))) %>%
     tidylog::mutate(month = dplyr::if_else(month == "M0", "M12", month)) %>%
-    tidylog::left_join(get_locality_lookup()) %>%
+    tidylog::left_join(readr::read_rds(get_locality_path()),
+                       by = "datazone2011") %>%
     tidylog::group_by(lca, ca2019name, hscp_locality, month) %>%
     tidylog::summarise(admissions = sum(admission_record)) %>%
     tidylog::ungroup()
 
-  bds_costs <- create_monthly_beddays(dates, year_to_run,
+  bds_costs <- create_monthly_beddays(
+    dates,
+    year_to_run,
     admission_date = admission_date,
     discharge_date = discharge_date,
     pivot_longer = TRUE
   )
 
-  all_measures <- tidylog::left_join(bds_costs, admissions, by = c("lca", "ca2019name", "hscp_locality", "month"))
+  all_measures <- tidylog::left_join(
+    bds_costs,
+    admissions,
+    by = c("lca", "ca2019name", "hscp_locality", "month")
+  )
 
   # SECTION 4 - ADDING 'ALL' GROUPS ----
 
@@ -130,7 +140,11 @@ ni12_13_20 <- function(year_to_run) {
   ni_values <- all_groups %>%
     tidylog::left_join(get_loc_pops(), by = c("year", "partnership", "locality")) %>%
     tidylog::left_join(
-      readr::read_rds(fs::path("Z2 - R Code", "Cost Lookup BM.rds")) %>%
+      readr::read_rds(fs::path(
+        "/conf/irf/03-Integration-Indicators/01-Core-Suite",
+        "Z2 - R Code",
+        "Cost Lookup BM.rds"
+      )) %>%
         tidylog::filter(year == financial_year),
       by = c("year", "partnership")
     ) %>%
@@ -190,6 +204,11 @@ ni_final_quarterly <- ni_final_monthly %>%
         dplyr::across(c(value, scotland, numerator), sum),
         dplyr::across(denominator, max)
       ))
+
 ni_final_monthly <- dplyr::bind_rows(ni_final_monthly)
-readr::write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly.rds", compress = "gz")
-readr::write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly.rds", compress = "gz")
+
+readr::write_excel_csv(ni_final_monthly, "/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 12 13 & 20/R Testing/NI-12-13-20-Monthly_jm.csv")
+readr::write_excel_csv(ni_final_quarterly, "/conf/irf/03-Integration-Indicators/01-Core-Suite/NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly_jm.csv")
+
+readr::write_rds(ni_final_monthly, "NI 12 13 & 20/R Testing/NI-12-13-20-Monthly_jm.rds", compress = "gz")
+readr::write_rds(ni_final_quarterly, "NI 12 13 & 20/R Testing/NI-12-13-20-Quarterly_jm.rds", compress = "gz")
