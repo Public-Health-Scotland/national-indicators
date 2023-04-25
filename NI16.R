@@ -9,20 +9,6 @@ ni16_connect <- dbConnect(odbc::odbc(),
 
 falls_codes <- paste0("W", stringr::str_pad(0:19, 2, "left", "0"))
 
-## Read data from SMRA
-# Set up SQL queries
-ni16_query <- "SELECT DISCHARGE_DATE, DR_POSTCODE as postcode,
-  MAIN_CONDITION, OTHER_CONDITION_1, OTHER_CONDITION_2,
-  OTHER_CONDITION_3, OTHER_CONDITION_4, OTHER_CONDITION_5
-  FROM ANALYSIS.SMR01_PI
-  WHERE ((DISCHARGE_DATE >= '01-APR-2013')
-  AND (AGE_IN_YEARS >= 65)
-  AND (INPATIENT_DAYCASE_IDENTIFIER = 'I')
-  AND (ADMISSION_TYPE Between 33 AND 35)
-  AND (SEX In ('1', '2'))
-  AND (DR_Postcode is not NULL))
-  Order By DR_Postcode"
-
 ni16_extract <-
   fs::as_tibble(
     dbGetQuery(ni16_connect, ni16_query)
