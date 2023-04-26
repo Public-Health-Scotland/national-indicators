@@ -77,7 +77,7 @@ aggregate_to_date_level <- function(data, date_level = c("calendar", "financial"
 #' @param data A data frame
 #'
 #' @return A data frame with the additional totals
-add_additional_groups <- function(data) {
+add_additional_groups_ni16 <- function(data) {
   return_data <- data %>%
     # Make annual totals
     add_all_grouping("month", "Annual") %>%
