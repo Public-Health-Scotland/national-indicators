@@ -63,11 +63,9 @@ test2 <- test %>%
   dplyr::left_join(., read_population_lookup(min_year = 2016, ages_required = "over18"), by = c("hscp_locality" = "locality", "pop_year", "ca2019name" = "partnership")) %>%
   dplyr::mutate(month = "Annual", hscp_locality = "All") %>%
   dplyr::group_by(year, ca2019name, hscp_locality, month, over18_pop) %>%
-  dplyr::summarise(beddays=  sum(beddays)) %>%
+  dplyr::summarise(beddays = sum(beddays)) %>%
   dplyr::ungroup() %>%
   dplyr::group_by(year, ca2019name, hscp_locality, month) %>%
-  dplyr::summarise(beddays=  sum(beddays), over18_pop = sum(over18_pop)) %>%
+  dplyr::summarise(beddays = sum(beddays), over18_pop = sum(over18_pop)) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(value = beddays / over18_pop * 100000)
-
-
