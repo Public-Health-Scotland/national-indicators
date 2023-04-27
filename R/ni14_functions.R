@@ -175,9 +175,10 @@ calculate_locality_totals <- function(data) {
 add_additional_groups_ni14 <- function(data) {
   return_data <- data %>%
     # Make annual totals
+    dplyr::mutate(month = as.character(month)) %>%
     add_all_grouping("month", "Annual") %>%
     # Make Clackmannanshire & Stirling totals
-    dplyr::mutate(temp_part = dplyr::if_else(ca2018 %in% c("S12000005", "S12000030"),
+    dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackamannanshire", "Stirling"),
       "Clackmannanshire and Stirling",
       NA_character_
     )) %>%
@@ -205,7 +206,7 @@ add_additional_groups_ni14 <- function(data) {
     dplyr::filter(partnership != "Scotland" | locality == "All") %>%
     # Aggregate
     dplyr::group_by(year, month, partnership, locality) %>%
-    dplyr::across(c("emergency_readm_28", "stay"), ~ sum(.x, na.rm = TRUE)) %>%
+    dplyr::summarise(dplyr::across(c("emergency_readm_28", "stay"), ~ sum(.x, na.rm = TRUE))) %>%
     dplyr::ungroup()
 
   return(return_data)
@@ -223,7 +224,7 @@ calculate_ni14 <- function() {
     match_smra_and_deaths(smra_data, nrs_data) %>%
     calculate_locality_totals() %>%
     purrr::map(~ add_additional_groups_ni14(.x)) %>%
-    purrr::map(~ dplyr::mutate(.x, value = .data$emergancy_readm_28 / .data$stay * 1000))
+    purrr::map(~ dplyr::mutate(.x, value = .data$emergency_readm_28 / .data$stay * 1000))
 
   return(final_data)
 }
