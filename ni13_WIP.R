@@ -25,7 +25,7 @@ slf_aggregated <-
     record_keydate1 = min(record_keydate1),
     record_keydate2 = max(record_keydate2),
     dplyr::across(c("lca", "datazone2011"), dplyr::last),
-    dplyr::across(dplyr::all_of(cost_names), sum, na.rm = TRUE),
+    dplyr::across(dplyr::all_of(cost_names), ~sum(.x, na.rm = TRUE)),
     .groups = "drop"
   ) %>%
   dplyr::ungroup() %>%
