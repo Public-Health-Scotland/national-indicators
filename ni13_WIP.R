@@ -28,7 +28,6 @@ slf_aggregated <-
     dplyr::across(dplyr::all_of(cost_names), ~sum(.x, na.rm = TRUE)),
     .groups = "drop"
   ) %>%
-  dplyr::ungroup() %>%
   tibble::as_tibble()
 
 month_intervals <-
