@@ -12,12 +12,12 @@ slf_aggregated <-
                       )
   ) %>%
   dplyr::mutate(cij_pattype = dplyr::if_else(.data$cij_admtype == 18, "Non-Elective", .data$cij_pattype)) %>%
-  dplyr::filter(!is_missing(.data$chi) &
-                  !is_missing(.data$datazone2011) &
-                  .data$recid %in% c("01B", "04B", "GLS") &
-                  .data$age >= 18 &
-                  !(.data$location %in% c("T113H", "S206H", "G106H")) &
                   (.data$cij_pattype == "Non-Elective" & .data$smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
+  dplyr::filter(!is_missing(.data$chi),
+                  .data$age >= 18,
+                  !(.data$location %in% c("T113H", "S206H", "G106H")),
+                  !is_missing(.data$datazone2011),
+                  .data$recid %in% c("01B", "04B", "GLS"),
   dtplyr::lazy_dt() %>%
   # Aggregate to CIJ level
   dplyr::group_by(year, chi, cij_marker) %>%
