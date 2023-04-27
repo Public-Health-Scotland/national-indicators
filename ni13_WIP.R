@@ -55,6 +55,8 @@ records_date_ranges <-
     record_interval = interval(record_keydate1, record_keydate2),
     april_flag = int_overlaps(record_interval, month_intervals[[1]]),
     april_beddays = dplyr::case_when(
+      # Record is only one day long
+      april_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before April and ends in April
       april_flag == TRUE & record_keydate1 < int_start(month_intervals[[1]]) & record_keydate2 %within% month_intervals[[1]] ~ int_length(interval(int_start(month_intervals[[1]]), record_keydate2)),
       # Record begins after April and ends after April
@@ -68,6 +70,8 @@ records_date_ranges <-
     ),
     may_flag = int_overlaps(record_interval, month_intervals[[2]]),
     may_beddays = dplyr::case_when(
+      # Record is only one day long
+      may_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before may and ends in may
       may_flag == TRUE & record_keydate1 < int_start(month_intervals[[2]]) & record_keydate2 %within% month_intervals[[2]] ~ int_length(interval(int_start(month_intervals[[2]]), record_keydate2)),
       # Record begins after may and ends after may
@@ -81,6 +85,8 @@ records_date_ranges <-
     ),
     june_flag = int_overlaps(record_interval, month_intervals[[3]]),
     june_beddays = dplyr::case_when(
+      # Record is only one day long
+      june_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before june and ends in june
       june_flag == TRUE & record_keydate1 < int_start(month_intervals[[3]]) & record_keydate2 %within% month_intervals[[3]] ~ int_length(interval(int_start(month_intervals[[3]]), record_keydate2)),
       # Record begins after june and ends after june
@@ -94,6 +100,8 @@ records_date_ranges <-
     ),
     july_flag = int_overlaps(record_interval, month_intervals[[4]]),
     july_beddays = dplyr::case_when(
+      # Record is only one day long
+      july_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before july and ends in july
       july_flag == TRUE & record_keydate1 < int_start(month_intervals[[4]]) & record_keydate2 %within% month_intervals[[4]] ~ int_length(interval(int_start(month_intervals[[4]]), record_keydate2)),
       # Record begins after july and ends after july
@@ -107,6 +115,8 @@ records_date_ranges <-
     ),
     august_flag = int_overlaps(record_interval, month_intervals[[5]]),
     august_beddays = dplyr::case_when(
+      # Record is only one day long
+      august_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before august and ends in august
       august_flag == TRUE & record_keydate1 < int_start(month_intervals[[5]]) & record_keydate2 %within% month_intervals[[5]] ~ int_length(interval(int_start(month_intervals[[5]]), record_keydate2)),
       # Record begins after august and ends after august
@@ -120,6 +130,8 @@ records_date_ranges <-
     ),
     september_flag = int_overlaps(record_interval, month_intervals[[6]]),
     september_beddays = dplyr::case_when(
+      # Record is only one day long
+      september_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before september and ends in september
       september_flag == TRUE & record_keydate1 < int_start(month_intervals[[6]]) & record_keydate2 %within% month_intervals[[6]] ~ int_length(interval(int_start(month_intervals[[6]]), record_keydate2)),
       # Record begins after september and ends after september
@@ -133,6 +145,8 @@ records_date_ranges <-
     ),
     october_flag = int_overlaps(record_interval, month_intervals[[7]]),
     october_beddays = dplyr::case_when(
+      # Record is only one day long
+      october_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before october and ends in october
       october_flag == TRUE & record_keydate1 < int_start(month_intervals[[7]]) & record_keydate2 %within% month_intervals[[7]] ~ int_length(interval(int_start(month_intervals[[7]]), record_keydate2)),
       # Record begins after october and ends after october
@@ -146,6 +160,8 @@ records_date_ranges <-
     ),
     november_flag = int_overlaps(record_interval, month_intervals[[8]]),
     november_beddays = dplyr::case_when(
+      # Record is only one day long
+      november_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before november and ends in november
       november_flag == TRUE & record_keydate1 < int_start(month_intervals[[8]]) & record_keydate2 %within% month_intervals[[8]] ~ int_length(interval(int_start(month_intervals[[8]]), record_keydate2)),
       # Record begins after november and ends after november
@@ -159,6 +175,8 @@ records_date_ranges <-
     ),
     december_flag = int_overlaps(record_interval, month_intervals[[9]]),
     december_beddays = dplyr::case_when(
+      # Record is only one day long
+      december_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before december and ends in december
       december_flag == TRUE & record_keydate1 < int_start(month_intervals[[9]]) & record_keydate2 %within% month_intervals[[9]] ~ int_length(interval(int_start(month_intervals[[9]]), record_keydate2)),
       # Record begins after december and ends after december
@@ -172,6 +190,8 @@ records_date_ranges <-
     ),
     january_flag = int_overlaps(record_interval, month_intervals[[10]]),
     january_beddays = dplyr::case_when(
+      # Record is only one day long
+      january_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before january and ends in january
       january_flag == TRUE & record_keydate1 < int_start(month_intervals[[10]]) & record_keydate2 %within% month_intervals[[10]] ~ int_length(interval(int_start(month_intervals[[10]]), record_keydate2)),
       # Record begins after january and ends after january
@@ -185,6 +205,8 @@ records_date_ranges <-
     ),
     february_flag = int_overlaps(record_interval, month_intervals[[11]]),
     february_beddays = dplyr::case_when(
+      # Record is only one day long
+      february_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before february and ends in february
       february_flag == TRUE & record_keydate1 < int_start(month_intervals[[11]]) & record_keydate2 %within% month_intervals[[11]] ~ int_length(interval(int_start(month_intervals[[11]]), record_keydate2)),
       # Record begins after february and ends after february
@@ -198,6 +220,8 @@ records_date_ranges <-
     ),
     march_flag = int_overlaps(record_interval, month_intervals[[12]]),
     march_beddays = dplyr::case_when(
+      # Record is only one day long
+      march_flag == TRUE & record_keydate1 == record_keydate2 ~ 86400,
       # Record begins before march and ends in march
       march_flag == TRUE & record_keydate1 < int_start(month_intervals[[12]]) & record_keydate2 %within% month_intervals[[12]] ~ int_length(interval(int_start(month_intervals[[12]]), record_keydate2)),
       # Record begins after march and ends after march
