@@ -33,18 +33,18 @@ slf_aggregated <-
 
 month_intervals <-
   c(
-    "april" = lubridate::interval("2017-04-01", "2017-05-01"),
+    "apr" = lubridate::interval("2017-04-01", "2017-05-01"),
     "may" = lubridate::interval("2017-05-01", "2017-06-01"),
-    "june" = lubridate::interval("2017-06-01", "2017-07-01"),
-    "july" = lubridate::interval("2017-07-01", "2017-08-01"),
-    "august" = lubridate::interval("2017-08-01", "2017-09-01"),
-    "september" = lubridate::interval("2017-09-01", "2017-10-01"),
-    "october" = lubridate::interval("2017-10-01", "2017-11-01"),
-    "november" = lubridate::interval("2017-11-01", "2017-12-01"),
-    "december" = lubridate::interval("2017-12-01", "2018-01-01"),
-    "january" = lubridate::interval("2018-01-01", "2018-02-01"),
-    "february" = lubridate::interval("2018-02-01", "2018-03-01"),
-    "march" = lubridate::interval("2018-03-01", "2018-04-01")
+    "jun" = lubridate::interval("2017-06-01", "2017-07-01"),
+    "jul" = lubridate::interval("2017-07-01", "2017-08-01"),
+    "aug" = lubridate::interval("2017-08-01", "2017-09-01"),
+    "sep" = lubridate::interval("2017-09-01", "2017-10-01"),
+    "oct" = lubridate::interval("2017-10-01", "2017-11-01"),
+    "nov" = lubridate::interval("2017-11-01", "2017-12-01"),
+    "dec" = lubridate::interval("2017-12-01", "2018-01-01"),
+    "jan" = lubridate::interval("2018-01-01", "2018-02-01"),
+    "feb" = lubridate::interval("2018-02-01", "2018-03-01"),
+    "mar" = lubridate::interval("2018-03-01", "2018-04-01")
   )
 
 library(lubridate)
