@@ -241,20 +241,130 @@ test <- records_date_ranges %>%
     names_to = c("month", ".value"),
     names_sep = "_"
   ) %>%
-  dplyr::group_by(year, lca, month, datazone2011) %>%
+  dplyr::left_join(., readr::read_rds(get_locality_path()), by = "datazone2011") %>%
+  dplyr::mutate(pop_year = "2017") %>%
+  dplyr::mutate(
+    fin_year = "2017/18",
+    cal_year = dplyr::case_when(
+      month %in% c("april", "may", "june", "july", "august", "september", "october", "november", "december") ~ "2017",
+      TRUE ~ "2018"
+    ),
+    fin_month = dplyr::case_when(
+      month == "april" ~ "M1",
+      month == "may" ~ "M2",
+      month == "june" ~ "M3",
+      month == "july" ~ "M4",
+      month == "august" ~ "M5",
+      month == "september" ~ "M6",
+      month == "october" ~ "M7",
+      month == "november" ~ "M8",
+      month == "december" ~ "M9",
+      month == "january" ~ "M10",
+      month == "february" ~ "M11",
+      month == "march" ~ "M12"
+    ),
+    cal_month = as.character(match(stringr::str_to_title(month), month.name)),
+    partnership = phsmethods::match_area(ca2018)
+  ) %>%
+  dplyr::select("partnership",
+                "hscp_locality",
+                "cal_year",
+                "cal_month",
+                "fin_year",
+                "fin_month",
+                "pop_year",
+                "beddays") %>%
+  dplyr::group_by(partnership,
+                  hscp_locality,
+                  cal_year,
+                  cal_month,
+                  fin_year,
+                  fin_month,
+                  pop_year) %>%
   dplyr::summarise(beddays = sum(beddays, na.rm = TRUE)) %>%
   dplyr::ungroup()
 
-test2 <- test %>%
-  dplyr::left_join(., readr::read_rds(get_locality_path()), by = "datazone2011") %>%
-  dplyr::mutate(pop_year = "2017") %>%
-  dplyr::left_join(., read_population_lookup(min_year = 2016, ages_required = "over18"), by = c("hscp_locality" = "locality", "pop_year", "ca2019name" = "partnership")) %>%
-  dplyr::mutate(month = "Annual", hscp_locality = "All") %>%
-  dplyr::group_by(year, ca2019name, hscp_locality, month, over18_pop) %>%
-  dplyr::summarise(beddays = sum(beddays)) %>%
+different_year_levels <-
+  list(
+    fin_year = test %>% dplyr::select(-cal_year, -cal_month) %>%
+      dplyr::rename(year = fin_year, month = fin_month),
+    cal_year = test %>% dplyr::select(-fin_year, -fin_month) %>%
+      dplyr::rename(year = cal_year, month = cal_month)
+  )
+
+cal_year <- different_year_levels[["cal_year"]] %>%
+  # Clacks & Stirling totals
+  dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackmannanshire", "Stirling"),
+                                           "Clackmannanshire and Stirling", NA_character_
+  )) %>%
+  tidyr::pivot_longer(
+    cols = c("partnership", "temp_part"),
+    values_to = "partnership",
+    values_drop_na = TRUE
+  ) %>%
+  dplyr::select(-name) %>%
+  # All localities totals
+  dplyr::mutate(temp_loc = "All") %>%
+  tidyr::pivot_longer(
+    cols = c("hscp_locality", "temp_loc"),
+    values_to = "hscp_locality"
+  ) %>%
+  dplyr::select(-name) %>%
+  # Scotland totals
+  dplyr::mutate(temp_part_2 = dplyr::if_else(partnership != "Clackmannanshire and Stirling", "Scotland", NA_character_)) %>%
+  tidyr::pivot_longer(
+    cols = c("partnership", "temp_part_2"),
+    values_to = "partnership",
+    values_drop_na = TRUE
+  ) %>%
+  dplyr::select(-name) %>%
+  dplyr::group_by(year, partnership, hscp_locality, month, pop_year) %>%
+  dplyr::summarise(beddays = sum(.data$beddays)) %>%
   dplyr::ungroup() %>%
-  dplyr::group_by(year, ca2019name, hscp_locality, month) %>%
-  dplyr::summarise(beddays = sum(beddays), over18_pop = sum(over18_pop)) %>%
-  dplyr::ungroup() %>%
+  dplyr::filter((partnership != "Scotland" | hscp_locality == "All") & !is.na(partnership)) %>%
+  dplyr::left_join(., read_population_lookup(min_year = 2017, ages_required = "over18"), by = c("hscp_locality" = "locality", "pop_year", "partnership")) %>%
   dplyr::mutate(value = beddays / over18_pop * 100000)
+
+fin_year <- different_year_levels[["fin_year"]] %>%
+  # Annual totals
+  dplyr::mutate(temp_month = "Annual") %>%
+  tidyr::pivot_longer(
+    cols = c("month", "temp_month"),
+    values_to = "month"
+  ) %>%
+  dplyr::select(-name) %>%
+  # Clacks & Stirling totals
+  dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackmannanshire", "Stirling"),
+                                           "Clackmannanshire and Stirling", NA_character_
+  )) %>%
+  tidyr::pivot_longer(
+    cols = c("partnership", "temp_part"),
+    values_to = "partnership",
+    values_drop_na = TRUE
+  ) %>%
+  dplyr::select(-name) %>%
+  # All localities totals
+  dplyr::mutate(temp_loc = "All") %>%
+  tidyr::pivot_longer(
+    cols = c("hscp_locality", "temp_loc"),
+    values_to = "hscp_locality"
+  ) %>%
+  dplyr::select(-name) %>%
+  # Scotland totals
+  dplyr::mutate(temp_part_2 = dplyr::if_else(partnership != "Clackmannanshire and Stirling", "Scotland", NA_character_)) %>%
+  tidyr::pivot_longer(
+    cols = c("partnership", "temp_part_2"),
+    values_to = "partnership",
+    values_drop_na = TRUE
+  ) %>%
+  dplyr::select(-name) %>%
+  dplyr::group_by(year, partnership, hscp_locality, month, pop_year) %>%
+  dplyr::summarise(beddays = sum(.data$beddays)) %>%
+  dplyr::ungroup() %>%
+  dplyr::filter((partnership != "Scotland" | hscp_locality == "All") & !is.na(partnership)) %>%
+  dplyr::left_join(., read_population_lookup(min_year = 2017, ages_required = "over18"), by = c("hscp_locality" = "locality", "pop_year", "partnership")) %>%
+  dplyr::mutate(value = beddays / over18_pop * 100000)
+
+arrow::write_parquet(fin_year, "Outputs/NI13_201718_financial_year.parquet")
+arrow::write_parquet(cal_year, "Outputs/NI13_201718_calendar_year.parquet")
 
