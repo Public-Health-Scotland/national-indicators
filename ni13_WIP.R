@@ -12,12 +12,12 @@ slf_aggregated <-
                       )
   ) %>%
   dplyr::mutate(cij_pattype = dplyr::if_else(.data$cij_admtype == 18, "Non-Elective", .data$cij_pattype)) %>%
-                  (.data$cij_pattype == "Non-Elective" & .data$smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP"))) %>%
-  dplyr::filter(!is_missing(.data$chi),
-                  .data$age >= 18,
-                  !(.data$location %in% c("T113H", "S206H", "G106H")),
-                  !is_missing(.data$datazone2011),
-                  .data$recid %in% c("01B", "04B", "GLS"),
+  dplyr::filter(!is_missing(.data$chi) &
+                .data$age >= 18 &
+                !(.data$location %in% c("T113H", "S206H", "G106H")) &
+                !is_missing(.data$datazone2011) &
+                .data$recid %in% c("01B", "04B", "GLS") &
+                (.data$cij_pattype == "Non-Elective" & (.data$smrtype %in% c("Acute-IP", "Psych-IP", "GLS-IP") | .data$recid == "04B"))) %>%
   dtplyr::lazy_dt() %>%
   # Aggregate to CIJ level
   dplyr::group_by(year, chi, cij_marker) %>%
@@ -241,8 +241,8 @@ test <- records_date_ranges %>%
     names_to = c("month", ".value"),
     names_sep = "_"
   ) %>%
-  dplyr::group_by(year, lca, datazone2011, month) %>%
-  dplyr::summarise(beddays = sum(beddays)) %>%
+  dplyr::group_by(year, lca, month, datazone2011) %>%
+  dplyr::summarise(beddays = sum(beddays, na.rm = TRUE)) %>%
   dplyr::ungroup()
 
 test2 <- test %>%
