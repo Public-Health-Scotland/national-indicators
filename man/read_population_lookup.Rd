@@ -7,7 +7,8 @@
 read_population_lookup(
   min_year,
   update_suffix = latest_update(),
-  ages_required = c("over18", "over65", "over75")
+  ages_required = c("over18", "over65", "over75"),
+  type = c("locality", "partnership")
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ read_population_lookup(
 \item{update_suffix}{Defaults to \code{\link[=latest_update]{latest_update()}}, the suffix of the population lookup}
 
 \item{ages_required}{One of "over18", "over65", "over75", selects ony relevant columns}
+
+\item{type}{The level you need the populations at, either "locality" or "partnership"}
 }
 \value{
 The population lookup, either read from disk or created
