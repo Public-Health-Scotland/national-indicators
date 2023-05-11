@@ -22,6 +22,8 @@ get_ni_dir <- function(indicator = NULL) {
       )
     )
   }
+
+  return(ni_dir)
 }
 
 #' NI Spreadsheet output dir
@@ -39,3 +41,13 @@ get_ni_tableau_output_dir <- function() {
   output_dir <- fs::path(get_ni_dir(), "Tableau Outputs")
   return(output_dir)
 }
+
+#' NI Tableau input dir
+#'
+#' @return The path to the Tableau input folder
+get_ni_input_dir <- function() {
+  input_dir <- fs::path(get_ni_dir(), "data_inputs")
+  return(input_dir)
+}
+
+
