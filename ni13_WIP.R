@@ -32,18 +32,18 @@ slf_aggregated <-
 
 month_intervals <-
   c(
-    "apr" = lubridate::interval("2017-04-01", "2017-05-01"),
-    "may" = lubridate::interval("2017-05-01", "2017-06-01"),
-    "jun" = lubridate::interval("2017-06-01", "2017-07-01"),
-    "jul" = lubridate::interval("2017-07-01", "2017-08-01"),
-    "aug" = lubridate::interval("2017-08-01", "2017-09-01"),
-    "sep" = lubridate::interval("2017-09-01", "2017-10-01"),
-    "oct" = lubridate::interval("2017-10-01", "2017-11-01"),
-    "nov" = lubridate::interval("2017-11-01", "2017-12-01"),
-    "dec" = lubridate::interval("2017-12-01", "2018-01-01"),
-    "jan" = lubridate::interval("2018-01-01", "2018-02-01"),
-    "feb" = lubridate::interval("2018-02-01", "2018-03-01"),
-    "mar" = lubridate::interval("2018-03-01", "2018-04-01")
+    "apr" = lubridate::interval("2022-04-01", "2022-05-01"),
+    "may" = lubridate::interval("2022-05-01", "2022-06-01"),
+    "jun" = lubridate::interval("2022-06-01", "2022-07-01"),
+    "jul" = lubridate::interval("2022-07-01", "2022-08-01"),
+    "aug" = lubridate::interval("2022-08-01", "2022-09-01"),
+    "sep" = lubridate::interval("2022-09-01", "2022-10-01"),
+    "oct" = lubridate::interval("2022-10-01", "2022-11-01"),
+    "nov" = lubridate::interval("2022-11-01", "2022-12-01"),
+    "dec" = lubridate::interval("2022-12-01", "2023-01-01"),
+    "jan" = lubridate::interval("2023-01-01", "2023-02-01"),
+    "feb" = lubridate::interval("2023-02-01", "2023-03-01"),
+    "mar" = lubridate::interval("2023-03-01", "2023-04-01")
   )
 
 library(lubridate)
@@ -242,12 +242,12 @@ test <- records_date_ranges %>%
     names_sep = "_"
   ) %>%
   dplyr::left_join(., readr::read_rds(get_locality_path()), by = "datazone2011") %>%
-  dplyr::mutate(pop_year = "2017") %>%
+  dplyr::mutate(pop_year = "2022") %>%
   dplyr::mutate(
-    fin_year = "2017/18",
+    fin_year = "2022/23",
     cal_year = dplyr::case_when(
-      month %in% c("april", "may", "june", "july", "august", "september", "october", "november", "december") ~ "2017",
-      TRUE ~ "2018"
+      month %in% c("april", "may", "june", "july", "august", "september", "october", "november", "december") ~ "2022",
+      TRUE ~ "2023"
     ),
     fin_month = dplyr::case_when(
       month == "april" ~ "M1",
@@ -365,6 +365,6 @@ fin_year <- different_year_levels[["fin_year"]] %>%
   dplyr::left_join(., read_population_lookup(min_year = 2017, ages_required = "over18"), by = c("hscp_locality" = "locality", "pop_year", "partnership")) %>%
   dplyr::mutate(value = beddays / over18_pop * 100000)
 
-arrow::write_parquet(fin_year, "Outputs/NI13_201718_financial_year.parquet")
-arrow::write_parquet(cal_year, "Outputs/NI13_201718_calendar_year.parquet")
+arrow::write_parquet(fin_year, "Outputs/NI13_202223_financial_year.parquet")
+arrow::write_parquet(cal_year, "Outputs/NI13_202223_calendar_year.parquet")
 
