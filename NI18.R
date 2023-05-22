@@ -6,8 +6,19 @@ answer <- readline(
     "Do you want to pull old data, or get new data? Valid answers: 'Old', 'New': "
 )
 
+ni_18_dir <- fs::path(
+  "/",
+  "conf",
+  "irf",
+  "03-Integration-Indicators",
+  "01-Core-Suite",
+  "data_inputs",
+  "NI18"
+)
+
 if (stringr::str_detect(answer, stringr::regex("old", ignore_case = TRUE))) { # Read the data from the new 'final' spreadsheet
-  data <- readxl::read_xlsx(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "MI_Copy_NI18.xlsx"),
+  data <- readxl::read_xlsx(
+    path = fs::path(ni_18_dir, "MI_Copy_NI18.xlsx"),
     sheet = "Data",
     guess_max = 12000
   ) %>%
@@ -69,50 +80,69 @@ if (stringr::str_detect(answer, stringr::regex("old", ignore_case = TRUE))) { # 
     dplyr::mutate(locality = stringr::str_pad(locality, 68, side = "right")) %>%
     haven::write_sav(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite", "NI 18", "NI 18-Final.zsav", compress = "zsav"))
 } else if (stringr::str_detect(answer, stringr::regex("new", ignore_case = T)) == T) {
-  raw_data <- readxl::read_excel(
-    "NI 18/2022-04-26-balance-of-care.xlsm",
-    sheet = "T1 Data",
-    range = "B1:Q133",
-    col_names = TRUE,
-    col_types = rep(c("text", "numeric"), times = c(3, 13))
-  ) %>%
-    dplyr::rename(identifier = ...1, partnership_no = ...2, partnership = ...3) %>%
-    dplyr::select(identifier, partnership_no, partnership, contains("2021")) %>%
-    tidyr::pivot_wider(
-      names_from = identifier,
-      values_from = contains("20")
-    ) %>%
-    janitor::clean_names() %>%
-    dplyr::mutate(
-      numerator = total_pc,
-      denominator = total_pc + ch_res + cc_census,
-      value = percentage
-    )
+  raw_data <- get_new_ni_18_data(
+    path = fs::path(ni_18_dir, "2023-02-28-balance-of-care.xlsm"),
+    min_year = 2015
+  )
 
   c_and_s <- raw_data %>%
-    dplyr::filter(partnership == "Clackmannanshire" | partnership == "Stirling") %>%
+    dplyr::filter(partnership %in% c("Clackmannanshire", "Stirling")) %>%
     dplyr::mutate(partnership = "Clackmannanshire and Stirling") %>%
-    dplyr::group_by(partnership) %>%
+    dplyr::group_by(year, partnership) %>%
     dplyr::summarise(
       numerator = sum(numerator),
       denominator = sum(denominator)
     ) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(value = numerator / denominator)
+    dplyr::mutate(rate = numerator / denominator * 100)
 
-  ni18_new <- dplyr::bind_rows(raw_data, c_and_s) %>%
+  ni_18_data <- dplyr::bind_rows(raw_data, c_and_s)
+
+  spreadsheet_output <- ni_18_data %>%
+    dplyr::mutate(time_period = "Annual",
+                  indicator = "NI18",
+                  estimate = "No",
+                  indicator_num = 18L) %>%
+    dplyr::select(
+      "year",
+      "time_period",
+      "partnership",
+      "indicator",
+      "estimate",
+      "numerator",
+      "denominator",
+      "rate",
+      "indicator_num"
+    )
+
+  max_year <- max(spreadsheet_output$year)
+
+  spreadsheet_output %>%
+    readr::write_csv(
+      fs::path(ni_18_dir, stringr::str_glue("NI18_data_to_{max_year}.csv"))
+    )
+
+
+  ni18_new <- ni_18_data %>%
     dplyr::mutate(
       indicator1 = "NI18",
-      year1 = "2021/22",
       locality = "All",
       data1 = "Annual"
     ) %>%
-    dplyr::select(year1, value,
-      partnership1 = partnership, numerator, locality, indicator1,
-      denominator, data1
+    dplyr::select(
+      "year1",
+      "rate",
+      partnership1 = "partnership",
+      "numerator",
+      "locality",
+      "indicator1",
+      "denominator",
+      "data1"
     )
 
-  ni18_final <- dplyr::left_join(ni18_new %>% dplyr::filter(partnership1 != "Scotland"),
+  ni18_final <- dplyr::left_join(
+    ni18_new %>%
+      dplyr::filter(partnership1 != "Scotland"),
     ni18_new %>% dplyr::filter(partnership1 == "Scotland") %>%
       dplyr::rename(scotland = value) %>%
       dplyr::select(year1, scotland),
