@@ -112,7 +112,7 @@ create_population_lookup <- function(
 read_population_lookup <- function(min_year,
                                    update_suffix = latest_update(),
                                    ages_required = c("over18", "over65", "over75")) {
-  if (file.exists(glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")) == TRUE) {
+  if (file.exists(glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet"))) {
     loc_pops <- arrow::read_parquet(
       glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")
     )
