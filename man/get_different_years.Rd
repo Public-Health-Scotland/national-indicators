@@ -11,7 +11,7 @@ get_different_years(year)
 \item{year}{A financial year in format "XXYY"}
 }
 \value{
-A named vector in the format c(financial_year, first_cal_year, second_cal_year, pop_year)
+A named list containing the financial_year, first_cal_year, second_cal_year and pop_year.
 }
 \description{
 Get the full financial year, calendar years, and population year from a
