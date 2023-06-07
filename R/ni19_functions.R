@@ -20,7 +20,7 @@ calculate_ni19 <- function(file_from_dd_team,
     dplyr::mutate(
       pop_year = stringr::str_sub(year, 1, 4),
       partnership = stringr::str_replace(partnership, "&", "and"),
-      partnership = dplyr::if_else(stringr::str_detect(partnership, "Comha") == TRUE, "Na h-Eileanan Siar", partnership),
+      partnership = dplyr::if_else(stringr::str_detect(partnership, "Comha"), "Na h-Eileanan Siar", partnership),
       partnership = dplyr::if_else(partnership == "Orkney" | partnership == "Shetland", stringr::str_c(partnership, " Islands"), partnership)
     ) %>%
     dplyr::filter(!(partnership %in% c("Undetermined", "Other"))) %>%
@@ -41,7 +41,7 @@ calculate_ni19 <- function(file_from_dd_team,
     dplyr::group_by(partnership, year, pop_year, time_period) %>%
     dplyr::summarise(numerator = sum(numerator)) %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(., read_population_lookup(min_year = 2015, ages_required = "over75", type = "partnership")) %>%
+    dplyr::left_join(read_population_lookup(min_year = 2015, ages_required = "over75", type = "partnership")) %>%
     dplyr::rename(denominator = over75_pop) %>%
     dplyr::mutate(value = (numerator / denominator) * 1000)
 
@@ -51,8 +51,8 @@ calculate_ni19 <- function(file_from_dd_team,
     dplyr::left_join(., ni19_scotland_column, by = c("year", "time_period")) %>%
     dplyr::mutate(indicator = "NI19")
 
-  if (write_to_disk == TRUE) {
-    arrow::write_parquet(glue::glue("{get_ni_output_dir()}/NI19_excel_output.parquet"))
+  if (write_to_disk) {
+    arrow::write_parquet(glue::glue("{get_ni_output_dir()}/NI19_excel_output.parquet"), compression = "zstd")
   }
 
   return(ni19_w_scotland_column)
