@@ -132,15 +132,15 @@ create_lca_population_lookup <- function(
   # Read in the lookup for the Scottish Postcode Directory and aggregate it so we
   # have one partnership name for each datazone
   temp_pc <- arrow::read_parquet(
-                get_spd_path(ext = "parquet"),
-                col_select = c("ca2019name", "datazone2011")
-                ) %>%
+    get_spd_path(ext = "parquet"),
+    col_select = c("ca2019name", "datazone2011")
+  ) %>%
     dplyr::group_by(datazone2011) %>%
     dplyr::summarise(lca = dplyr::first(ca2019name))
 
   lca_pops <- dplyr::left_join(dz_pops, temp_pc, by = "datazone2011") %>%
     dplyr::group_by(year, lca) %>%
-    dplyr::summarise(dplyr::across(over18_pop:over75_pop, ~sum(.x)), .groups = "keep")
+    dplyr::summarise(dplyr::across(over18_pop:over75_pop, ~ sum(.x)), .groups = "keep")
 
   latest_pop_year <- lca_pops %>%
     dplyr::pull(year) %>%
@@ -205,8 +205,8 @@ read_population_lookup <- function(min_year,
                                    update_suffix = latest_update(),
                                    ages_required = c("over18", "over65", "over75"),
                                    type = c("locality", "partnership")) {
-ages_required <- match.arg(ages_required)
-type <- match.arg(type)            
+  ages_required <- match.arg(ages_required)
+  type <- match.arg(type)
   if (type == "locality") {
     if (file.exists(glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")) == TRUE) {
       pops <- arrow::read_parquet(
@@ -235,7 +235,7 @@ type <- match.arg(type)
           "pop_year",
           "partnership",
           glue::glue("{ages_required}_pop")
-          )
+        )
       )
     } else {
       pops <- create_lca_population_lookup(min_year = min_year) %>%
