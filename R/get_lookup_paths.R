@@ -205,15 +205,14 @@ get_spd_path <- function(file_name = NULL, ext = "rds") {
 #'
 #' @return An [fs::path()] to the Scottish Postcode Directory
 #' @export
-get_locality_path <- function(file_name = NULL, ext = "rds") {
+get_locality_path <- function(ext = "rds") {
   locality_dir <-
     fs::path(get_lookups_dir(), "Geography", "HSCP Locality")
 
   locality_path <- get_file_path(
     directory = locality_dir,
-    file_name = file_name,
     ext = ext,
-    file_name_regexp = glue::glue("HSCP Localities_DZ11_Lookup_\\d+?\\.{ext}")
+    file_name_regexp = stringr::str_glue("HSCP Localities_DZ11_Lookup_\\d+?\\.{ext}")
   )
 
   return(locality_path)
@@ -243,6 +242,18 @@ get_simd_path <- function(file_name = NULL, ext = "rds") {
   )
 
   return(simd_path)
+}
+
+get_loc_pops_path <- function(ext = "rds") {
+  pops_dir <- fs::path(get_lookups_dir(), "Populations", "Estimates")
+
+  loc_pops_path <- get_file_path(
+    directory = pops_dir,
+    ext = ext,
+    file_name_regexp = stringr::str_glue("DataZone2011_pop_est_\\d{{4}}_\\d{{4}}\\.{ext}")
+  )
+
+  return(loc_pops_path)
 }
 
 #' Population Estimates File Path
