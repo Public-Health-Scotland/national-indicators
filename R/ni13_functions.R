@@ -271,31 +271,33 @@ format_date_levels_ni13 <- function(data, year) {
 #'
 #' @return An aggregated data frame to Locality level at the lowest
 prepare_for_groupings <- function(data) {
-
   return_data <- data %>%
     dplyr::left_join(., readr::read_rds(get_locality_path()), by = "datazone2011") %>%
     dplyr::mutate(partnership = phsmethods::match_area(ca2018)) %>%
     dplyr::rename(locality = hscp_locality) %>%
-    dplyr::select("partnership",
-                  "hscp_locality",
-                  "cal_year",
-                  "cal_month",
-                  "fin_year",
-                  "fin_month",
-                  "pop_year",
-                  "beddays") %>%
-    dplyr::group_by(partnership,
-                    hscp_locality,
-                    cal_year,
-                    cal_month,
-                    fin_year,
-                    fin_month,
-                    pop_year) %>%
+    dplyr::select(
+      "partnership",
+      "hscp_locality",
+      "cal_year",
+      "cal_month",
+      "fin_year",
+      "fin_month",
+      "pop_year",
+      "beddays"
+    ) %>%
+    dplyr::group_by(
+      partnership,
+      hscp_locality,
+      cal_year,
+      cal_month,
+      fin_year,
+      fin_month,
+      pop_year
+    ) %>%
     dplyr::summarise(beddays = sum(beddays, na.rm = TRUE)) %>%
     dplyr::ungroup()
 
   return(return_data)
-
 }
 
 #' Split the data into calendar year and financial year, and add yearly totals,
@@ -305,7 +307,6 @@ prepare_for_groupings <- function(data) {
 #'
 #' @return A data frame with the described groups added and aggregated
 add_all_groupings_ni13 <- function(data) {
-
   pop_year <- min(data$pop_year)
 
   different_year_levels <-
@@ -319,7 +320,7 @@ add_all_groupings_ni13 <- function(data) {
   cal_year <- different_year_levels[["cal_year"]] %>%
     # Clacks & Stirling totals
     dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackmannanshire", "Stirling"),
-                                             "Clackmannanshire and Stirling", NA_character_
+      "Clackmannanshire and Stirling", NA_character_
     )) %>%
     tidyr::pivot_longer(
       cols = c("partnership", "temp_part"),
@@ -347,8 +348,9 @@ add_all_groupings_ni13 <- function(data) {
     dplyr::ungroup() %>%
     dplyr::filter((partnership != "Scotland" | hscp_locality == "All") & !is.na(partnership)) %>%
     dplyr::left_join(.,
-                     read_population_lookup(min_year = pop_year, ages_required = "over18"),
-                     by = c("locality", "pop_year", "partnership")) %>%
+      read_population_lookup(min_year = pop_year, ages_required = "over18"),
+      by = c("locality", "pop_year", "partnership")
+    ) %>%
     dplyr::mutate(value = beddays / over18_pop * 100000) %>%
     dplyr::rename(time_period = month)
 
@@ -362,7 +364,7 @@ add_all_groupings_ni13 <- function(data) {
     dplyr::select(-name) %>%
     # Clacks & Stirling totals
     dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackmannanshire", "Stirling"),
-                                             "Clackmannanshire and Stirling", NA_character_
+      "Clackmannanshire and Stirling", NA_character_
     )) %>%
     tidyr::pivot_longer(
       cols = c("partnership", "temp_part"),
@@ -390,15 +392,15 @@ add_all_groupings_ni13 <- function(data) {
     dplyr::ungroup() %>%
     dplyr::filter((partnership != "Scotland" | locality == "All") & !is.na(partnership)) %>%
     dplyr::left_join(.,
-                     read_population_lookup(min_year = pop_year, ages_required = "over18"),
-                     by = c("locality", "pop_year", "partnership")) %>%
+      read_population_lookup(min_year = pop_year, ages_required = "over18"),
+      by = c("locality", "pop_year", "partnership")
+    ) %>%
     dplyr::mutate(value = beddays / over18_pop * 100000)
 
   return(list(
     "fin_year" = fin_year,
     "cal_year" = cal_year
   ))
-
 }
 
 #' Fully calculate NI13 for a given financial year and save out if required
@@ -423,5 +425,3 @@ calculate_ni13 <- function(year, write_to_disk = FALSE) {
 
   return(return_data)
 }
-
-

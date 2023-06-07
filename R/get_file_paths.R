@@ -3,7 +3,7 @@
 #' @return The path to the NI folder
 #' @export
 get_ni_dir <- function() {
- return(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite"))
+  return(fs::path("/", "conf", "irf", "03-Integration-Indicators", "01-Core-Suite"))
 }
 
 #' NI R output dir

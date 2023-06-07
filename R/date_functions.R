@@ -25,7 +25,7 @@ calculate_financial_month <- function(date_variable) {
 calculate_fin_month_from_string <- function(month_variable) {
   names <- stringr::str_to_lower(month.name)
 
-month_num <- match(month_variable, names)
+  month_num <- match(month_variable, names)
   fin_month <- dplyr::case_when(
     dplyr::between(month_num, 1, 3) ~ glue::glue("M{month_num + 9}"),
     dplyr::between(month_num, 4, 12) ~ glue::glue("M{month_num - 3}")
@@ -65,4 +65,3 @@ get_different_years <- function(year) {
 
   return(years)
 }
-
