@@ -96,7 +96,7 @@ create_population_lookup <- function(
       locality = hscp_locality
     )
 
-  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{latest_update()}.parquet"))
+  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{min_year}_{latest_update()}.parquet"), compression = "zstd")
 
   return(loc_pops)
 }
@@ -206,9 +206,9 @@ read_population_lookup <- function(min_year,
                                    ages_required = c("over18", "over65", "over75"),
                                    type = c("locality", "partnership")) {
   if (type == "locality") {
-    if (file.exists(glue::glue("Lookups/population_lookup_{update_suffix}.parquet")) == TRUE) {
+    if (file.exists(glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")) == TRUE) {
       pops <- arrow::read_parquet(
-        glue::glue("Lookups/population_lookup_{update_suffix}.parquet")
+        glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")
       ) %>%
         dplyr::select(
           "pop_year",

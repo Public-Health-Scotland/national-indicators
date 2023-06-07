@@ -4,14 +4,14 @@
 \alias{get_locality_path}
 \title{Locality File Path}
 \usage{
-get_locality_path(file_name = NULL, ext = "rds")
+get_locality_path(ext = "rds")
 }
 \arguments{
+\item{ext}{The extension (type of the file) - optional}
+
 \item{file_name}{(optional) the file name of the Localities files, if not
 supplied it will try to return the latest file automatically (using
 \code{\link[=find_latest_file]{find_latest_file()}})}
-
-\item{ext}{The extension (type of the file) - optional}
 }
 \value{
 An \code{\link[fs:path]{fs::path()}} to the Scottish Postcode Directory
