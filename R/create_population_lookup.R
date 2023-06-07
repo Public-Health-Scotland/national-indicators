@@ -96,7 +96,7 @@ create_population_lookup <- function(
       locality = hscp_locality
     )
 
-  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{min_year}_{latest_update()}.parquet"))
+  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{min_year}_{latest_update()}.parquet"), compression = "zstd")
 
   return(loc_pops)
 }
