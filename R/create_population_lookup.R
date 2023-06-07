@@ -114,8 +114,6 @@ create_lca_population_lookup <- function(
     min_year,
     pop_est_path = get_population_estimate_path(),
     spd_path = get_spd_path()) {
-
-
   dz_pops <- readr::read_rds(get_population_estimate_path()) %>%
     # Filter out anything before 2013 as we don't use this data
     dplyr::filter(year >= min_year) %>%

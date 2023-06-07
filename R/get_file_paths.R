@@ -38,5 +38,3 @@ get_ni_input_dir <- function() {
   input_dir <- fs::path(get_ni_dir(), "data_inputs")
   return(input_dir)
 }
-
-

@@ -9,7 +9,6 @@
 #' @export
 calculate_ni19 <- function(file_from_dd_team,
                            write_to_disk = FALSE) {
-
   # TODO return an error if the wrong DD file name is used
 
   ni19 <- readr::read_csv(glue::glue("{get_ni_input_dir()}/NI19/{file_from_dd_team}.csv"),
