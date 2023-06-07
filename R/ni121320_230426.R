@@ -1,9 +1,14 @@
-prepare_slf_episode_file <- function() {
+prepare_slf_episode_file <- function(year, ni_version = FALSE) {
   cost_names <- tolower(paste0(month.abb, "_cost"))
   bedday_names <- tolower(paste0(month.abb, "_beddays"))
 
-  slf <-
-    arrow::read_parquet("/conf/sourcedev/Source_Linkage_File_Updates/1718/source-episode-file-1718_ni_version.parquet",
+ slf_dir <- fs::path("/", "conf", "sourcedev", "Source_Linkage_File_Updates", year)
+ 
+ file_name <- stringr::str_glue("source-episode-file-{year}{ifelse(ni_version, '_ni_version', '')}.parquet")
+ 
+ slf_path <- fs::path(slf_dir, file_name)
+
+  slf <- arrow::read_parquet(slf_path,
       col_select = c(
         "year", "chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
         "record_keydate1", "record_keydate2",
@@ -25,7 +30,7 @@ prepare_slf_episode_file <- function() {
       record_keydate1 = min(record_keydate1),
       record_keydate2 = max(record_keydate2),
       dplyr::across(c("lca", "datazone2011"), dplyr::last),
-      dplyr::across(c(cost_names, bedday_names), sum, na.rm = TRUE),
+      dplyr::across(c(cost_names, bedday_names), ~sum(.x, na.rm = TRUE)),
       .groups = "drop"
     ) %>%
     dplyr::collect()

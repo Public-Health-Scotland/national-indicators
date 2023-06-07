@@ -212,7 +212,7 @@ get_locality_path <- function(ext = "rds") {
   locality_path <- get_file_path(
     directory = locality_dir,
     ext = ext,
-    file_name_regexp = glue::glue("HSCP Localities_DZ11_Lookup_\\d+?\\.{ext}")
+    file_name_regexp = stringr::str_glue("HSCP Localities_DZ11_Lookup_\\d+?\\.{ext}")
   )
 
   return(locality_path)
@@ -250,7 +250,7 @@ get_loc_pops_path <- function(ext = "rds") {
   loc_pops_path <- get_file_path(
     directory = pops_dir,
     ext = ext,
-    file_name_regexp = stringr::str_glue("DataZone2011_pop_est_\\d{{4}}_\\d{{4}}\\.rds")
+    file_name_regexp = stringr::str_glue("DataZone2011_pop_est_\\d{{4}}_\\d{{4}}\\.{ext}")
   )
 
   return(loc_pops_path)
