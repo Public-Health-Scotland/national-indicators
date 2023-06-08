@@ -1,4 +1,4 @@
-hace_year <- "2022"
+outcome_indicators <- function() {hace_year <- "2022"
 finyear <- "2021/22"
 
 # Pull out data from a stable previous version
@@ -199,3 +199,4 @@ writexl::write_xlsx(final %>% dplyr::filter(Locality == "All"), "NI 1-9/NI 1-9-M
 
 
 help <- haven::read_sav("Z1 - Data Archive/NI 1-9-All Data and Vars-pre-2022-05-26")
+}

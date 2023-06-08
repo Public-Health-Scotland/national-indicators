@@ -1,4 +1,4 @@
-library(haven)
+cost_lookup_function <- function () {library(haven)
 library(dplyr)
 library(fs)
 library(readxl)
@@ -76,3 +76,4 @@ fs::file_copy(cost_lookup_path, fs::path("Z1 - Data Archive", stringr::str_glue(
 
 # Write out for usage in NI 12, 13, 20
 haven::write_sav(costs, cost_lookup_path)
+}
