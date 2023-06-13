@@ -7,15 +7,10 @@
 #' @export
 #' @seealso "SQL/ni15_gro.sql"
 process_ni15_gro_extract <- function(extract_start, extract_end) {
-
   deaths_query <- glue::glue(readr::read_file("SQL/ni15_gro.sql"))
 
   deaths <- odbc::dbGetQuery(connect_to_smra(), deaths_query) %>%
     janitor::clean_names()
 
   return(deaths)
-
 }
-
-
-
