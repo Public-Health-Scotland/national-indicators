@@ -25,7 +25,7 @@ flag_admission_records <- function(record_keydate1,
 calculate_ni12 <- function(data,
                            fin_year_start,
                            fin_year_end) {
-  dates_and_locality <- slf_aggregated %>%
+  dates_and_locality <- data %>%
     dplyr::mutate(admission_record_flag = flag_admission_records(record_keydate1, fin_year_start, fin_year_end)) %>%
     dplyr::mutate(
       record_keydate1 =
@@ -68,7 +68,7 @@ calculate_ni12 <- function(data,
 
   final_values <- date_level_totals %>%
     purrr::map(~ add_all_groupings_ni12(.x)) %>%
-    purrr::map(~ dplyr::left_join(.x, read_population_lookup(min_year = 2017, ages_required = "over18"),
+    purrr::map(~ dplyr::left_join(.x, read_population_lookup(min_year = 2017, ages_required = "over18", type = "locality"),
       by = c("hscp_locality" = "locality", "pop_year", "partnership")
     ) %>%
       dplyr::mutate(value = .data$admissions / .data$over18_pop * 100000))
