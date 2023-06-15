@@ -47,22 +47,26 @@ calculate_length_of_stay <- function(data) {
 #'
 #' @return A list of data frames
 match_smra_and_deaths_ni15 <- function(smr_data, deaths_data) {
-
   matched <- dplyr::left_join(deaths_data, smr_data, by = "link_no")
 
   cal_year <- matched %>%
     dplyr::select(-fin_month, -fy, -quarter) %>%
-    dplyr::rename(time_period = cal_month,
-                  year = cal_year)
+    dplyr::rename(
+      time_period = cal_month,
+      year = cal_year
+    )
 
   fin_year <- matched %>%
     dplyr::select(-cal_month, -cal_year) %>%
-    dplyr::rename(time_period = fin_month,
-                  year = fy)
+    dplyr::rename(
+      time_period = fin_month,
+      year = fy
+    )
 
-  return(list("cal_year" = cal_year,
-              "fin_year" = fin_year))
-
+  return(list(
+    "cal_year" = cal_year,
+    "fin_year" = fin_year
+  ))
 }
 
 #' Add additional groups and aggregate to locality level
@@ -71,17 +75,19 @@ match_smra_and_deaths_ni15 <- function(smr_data, deaths_data) {
 #'
 #' @return A data frame with additional groups
 add_additional_groups_ni15 <- function(data) {
-
   aggregated <- fin_year %>%
     dplyr::group_by(year, time_period, ca2019name, hscp_locality) %>%
-    dplyr::summarise(numerator = sum(los, na.rm = TRUE),
-                     denominator = dplyr::n())
+    dplyr::summarise(
+      numerator = sum(los, na.rm = TRUE),
+      denominator = dplyr::n()
+    )
 
   all_groups <- aggregated %>%
     add_all_grouping("time_period", "Annual") %>%
     dplyr::mutate(temp_part = dplyr::if_else(.data$ca2019name %in% c("Clackmannanshire", "Stirling"),
-                                             "Clackmannanshire and Stirling",
-                                             NA_character_)) %>%
+      "Clackmannanshire and Stirling",
+      NA_character_
+    )) %>%
     tidyr::pivot_longer(
       cols = c(ca2019name, temp_part),
       values_to = "ca2019name",
@@ -92,8 +98,8 @@ add_additional_groups_ni15 <- function(data) {
     add_all_grouping("hscp_locality", "All") %>%
     # Make Scotland totals
     dplyr::mutate(temp_part = dplyr::if_else(ca2019name == "Clackmannanshire and Stirling",
-                                             NA_character_,
-                                             "Scotland"
+      NA_character_,
+      "Scotland"
     )) %>%
     tidyr::pivot_longer(
       cols = c(ca2019name, temp_part),
@@ -106,8 +112,10 @@ add_additional_groups_ni15 <- function(data) {
     dplyr::filter(ca2019name != "Scotland" | hscp_locality == "All") %>%
     # Aggregate
     dplyr::group_by(year, time_period, ca2019name, hscp_locality) %>%
-    dplyr::summarise(numerator = sum(numerator),
-                     denominator = sum(denominator)) %>%
+    dplyr::summarise(
+      numerator = sum(numerator),
+      denominator = sum(denominator)
+    ) %>%
     dplyr::ungroup()
 
   return(all_groups)
@@ -121,7 +129,6 @@ add_additional_groups_ni15 <- function(data) {
 #' @return A list of data frames
 #' @export
 calculate_ni15 <- function(extract_start, extract_end) {
-
   smr_data <- process_ni15_smr_extracts(extract_start, extract_end) %>%
     calculate_length_of_stay()
 
@@ -131,11 +138,10 @@ calculate_ni15 <- function(extract_start, extract_end) {
 
   return_list <- matched_list %>%
     purrr::map(~ add_additional_groups_ni15(.x) %>%
-                 dplyr::mutate(
-                   value = 100 - (((numerator / denominator) / 182.5) * 100),
-                   indicator = "NI15"
-                 ))
+      dplyr::mutate(
+        value = 100 - (((numerator / denominator) / 182.5) * 100),
+        indicator = "NI15"
+      ))
 
   return(return_list)
-
 }
