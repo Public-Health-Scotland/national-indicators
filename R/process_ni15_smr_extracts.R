@@ -52,9 +52,9 @@ process_ni15_smr_extracts <- function(extract_start, extract_end) {
   # Combine all SMR data
   combined_smr <- dplyr::bind_rows(
     smr01 %>%
-      mutate(recid = "01"),
+      dplyr::mutate(recid = "01"),
     smr04 %>%
-      mutate(recid = "04")
+      dplyr::mutate(recid = "04")
   ) %>%
     # Aggregate where SMR01 and SMR04 stays overlap
     dplyr::group_by(.data$link_no) %>%
