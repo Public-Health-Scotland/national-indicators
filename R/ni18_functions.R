@@ -27,7 +27,6 @@ get_new_ni_18_data <- function(path, min_year) {
 }
 
 calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
-
   raw_data <- get_new_ni_18_data(
     path = path,
     min_year = min_year
@@ -47,10 +46,12 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
   ni_18_data <- dplyr::bind_rows(raw_data, c_and_s)
 
   spreadsheet_output <- ni_18_data %>%
-    dplyr::mutate(time_period = "Annual",
-                  indicator = "NI18",
-                  estimate = "No",
-                  ind_no = 18L) %>%
+    dplyr::mutate(
+      time_period = "Annual",
+      indicator = "NI18",
+      estimate = "No",
+      ind_no = 18L
+    ) %>%
     dplyr::select(
       "year",
       "time_period",
@@ -99,5 +100,4 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
   } else {
     return(list(spreadsheet_output, ni18_final_tableau))
   }
-
 }
