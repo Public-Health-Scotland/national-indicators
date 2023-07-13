@@ -111,7 +111,8 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
 
   if (write_to_disk) {
     arrow::write_parquet(spreadsheet_output, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_spreadsheet_output.parquet")))
-    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_tableau_output.parquet")))}
+    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_tableau_output.parquet")))
+  }
 
   return(list(spreadsheet_output, ni18_final_tableau))
 }
