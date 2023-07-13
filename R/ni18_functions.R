@@ -1,3 +1,9 @@
+#' Read in and format NI18 data from Social Care team
+#'
+#' @param path Path to spreadsheet received from Social Care team
+#' @param min_year Minimum year to use for output
+#'
+#' @return A data frame
 get_new_ni_18_data <- function(path, min_year) {
   readxl::read_excel(
     path = path,
@@ -26,6 +32,14 @@ get_new_ni_18_data <- function(path, min_year) {
     )
 }
 
+#' Read in raw NI18 data and calculate final NI18 output
+#'
+#' @param path Path to spreadsheet received from Social Care team
+#' @param min_year Minimum year to use for output
+#' @param write_to_disk Boolean, whether to write output or not
+#'
+#' @return A list of two outputs, one for the MI spreadsheet and one for Tableau
+#' @export
 calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
   raw_data <- get_new_ni_18_data(
     path = path,
@@ -62,7 +76,8 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
       "denominator",
       "rate",
       "ind_no"
-    )
+    ) %>%
+    dplyr::mutate(year = format_financial_year(year, "single_year"))
 
   max_year <- max(spreadsheet_output$year)
 
@@ -91,13 +106,12 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
       dplyr::select(year, scotland),
     by = "year"
   ) %>%
-    dplyr::relocate(scotland, .after = "rate")
+    dplyr::relocate(scotland, .after = "rate") %>%
+    dplyr::mutate(year = format_financial_year(year, "single_year"))
 
   if (write_to_disk) {
     arrow::write_parquet(spreadsheet_output, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_spreadsheet_output.parquet")))
-    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_tableau_output.parquet")))
-    return(list(spreadsheet_output, ni18_final_tableau))
-  } else {
-    return(list(spreadsheet_output, ni18_final_tableau))
-  }
+    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_tableau_output.parquet")))}
+
+  return(list(spreadsheet_output, ni18_final_tableau))
 }
