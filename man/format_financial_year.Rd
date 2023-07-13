@@ -4,10 +4,13 @@
 \alias{format_financial_year}
 \title{Convert four-character year into "20XX/YY"}
 \usage{
-format_financial_year(four_char_year)
+format_financial_year(four_char_year, type = c("single_year", "two_years"))
 }
 \arguments{
-\item{four_char_year}{A vector of years, in "CCYY" format}
+\item{four_char_year}{A vector of years, in a four-character format}
+
+\item{type}{If "single_year", assume years are like "2018", if "two_years"
+assume years are like "1819"}
 }
 \value{
 A vector of financial years in "20XX/YY" format
