@@ -7,7 +7,7 @@
 #' @export
 process_ni15_smr_extracts <- function(extract_start, extract_end) {
   # Extract from SMR01 has to start six months before the actual start date of represented data for safety
-  extract_start_smr <- stringr::str_to_upper(format(lubridate::dmy(format(strptime(extract_start, format = "%d-%b-%Y"), "%d-%m-%Y")) - months(6), "%d-%b-%Y"))
+  extract_start_smr <- toupper(strftime(lubridate::dmy(extract_start) - months(6), format = "%d-%b-%Y"))
   # Connect to SMRA
   smra_connect <- connect_to_smra()
 
