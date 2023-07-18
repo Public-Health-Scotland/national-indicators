@@ -126,27 +126,33 @@ calculate_outcome_indicators <- function(hace_year,
 
   return_data <-
     dplyr::left_join(indicators,
-                     indicators %>% dplyr::filter(partnership == "Scotland") %>%
-                       dplyr::rename(scotland = value) %>%
-                       dplyr::select("time_period",
-                                     "indicator",
-                                     "year",
-                                     "scotland"),
-                     by = c("year", "indicator", "time_period")
+      indicators %>% dplyr::filter(partnership == "Scotland") %>%
+        dplyr::rename(scotland = value) %>%
+        dplyr::select(
+          "time_period",
+          "indicator",
+          "year",
+          "scotland"
+        ),
+      by = c("year", "indicator", "time_period")
     )
 
   write_year <- stringr::str_replace(max(return_data$year), "/", "")
 
   if (write_to_disk) {
     # Spreadsheet output doesn't need Scotland column
-    arrow::write_parquet(return_data %>%
-                           dplyr::select(-"scotland"),
-                         fs::path(get_ni_output_dir(), glue::glue("NI1_to_NI9_{write_year}_spreadsheet_output.parquet")))
+    arrow::write_parquet(
+      return_data %>%
+        dplyr::select(-"scotland"),
+      fs::path(get_ni_output_dir(), glue::glue("NI1_to_NI9_{write_year}_spreadsheet_output.parquet"))
+    )
     # Tableau output doesn't need ind_no and doesn't need Scotland rows
-    arrow::write_parquet(return_data %>%
-                           dplyr::select(-"ind_no") %>%
-                           dplyr::filter(partnership != "Scotland"),
-                         fs::path(get_ni_output_dir(), glue::glue("NI1_to_NI9_{write_year}_tableau_output.parquet")))
+    arrow::write_parquet(
+      return_data %>%
+        dplyr::select(-"ind_no") %>%
+        dplyr::filter(partnership != "Scotland"),
+      fs::path(get_ni_output_dir(), glue::glue("NI1_to_NI9_{write_year}_tableau_output.parquet"))
+    )
   }
 
   return(return_data)
