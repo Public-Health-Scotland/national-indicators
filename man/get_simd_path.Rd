@@ -4,7 +4,7 @@
 \alias{get_simd_path}
 \title{SIMD File Path}
 \usage{
-get_simd_path(file_name = NULL, ext = "rds")
+get_simd_path(file_name = NULL, ext = "parquet")
 }
 \arguments{
 \item{file_name}{(optional) the file name of the SIMD file, if not supplied

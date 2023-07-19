@@ -4,7 +4,7 @@
 \alias{get_spd_path}
 \title{Scottish Postcode Directory File Path}
 \usage{
-get_spd_path(file_name = NULL, ext = "rds")
+get_spd_path(file_name = NULL, ext = "parquet")
 }
 \arguments{
 \item{file_name}{(optional) the file name of the SPD, if not supplied it will
