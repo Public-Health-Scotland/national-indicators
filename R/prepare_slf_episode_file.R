@@ -48,8 +48,10 @@ prepare_slf_episode_file <- function(year, ni_version = FALSE) {
 
   if (!date_class) {
     slf <- slf %>%
-      dplyr::mutate(record_keydate1 = lubridate::ymd(record_keydate1),
-                    record_keydate2 = lubridate::ymd(record_keydate2))
+      dplyr::mutate(
+        record_keydate1 = lubridate::ymd(record_keydate1),
+        record_keydate2 = lubridate::ymd(record_keydate2)
+      )
   }
 
   return(slf)
