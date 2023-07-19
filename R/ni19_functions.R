@@ -41,7 +41,7 @@ calculate_ni19 <- function(file_from_dd_team,
     dplyr::group_by(partnership, year, pop_year, time_period) %>%
     dplyr::summarise(numerator = sum(numerator)) %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(read_population_lookup(min_year = 2015, ages_required = "over75", type = "partnership")) %>%
+    dplyr::left_join(read_population_lookup(ages_required = "over75", type = "partnership")) %>%
     dplyr::rename(denominator = over75_pop) %>%
     dplyr::mutate(value = (numerator / denominator) * 1000)
 
