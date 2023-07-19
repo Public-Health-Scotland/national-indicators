@@ -193,7 +193,6 @@ create_lca_population_lookup <- function(
 #' @export
 read_population_lookup <- function(ages_required = c("over18", "over65", "over75"),
                                    type = c("locality", "partnership")) {
-
   ages_required <- match.arg(ages_required)
   type <- match.arg(type)
 
