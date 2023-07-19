@@ -6,8 +6,8 @@
 #' @return A filtered SLF aggregated to CIJ level
 #' @export
 prepare_slf_episode_file <- function(year, ni_version = FALSE) {
-  cost_names <- tolower(paste0(month.abb, "_cost"))
-  bedday_names <- tolower(paste0(month.abb, "_beddays"))
+  # cost_names <- tolower(paste0(month.abb, "_cost"))
+  # bedday_names <- tolower(paste0(month.abb, "_beddays"))
 
   slf_dir <- fs::path("/", "conf", "sourcedev", "Source_Linkage_File_Updates", year)
 
@@ -20,7 +20,8 @@ prepare_slf_episode_file <- function(year, ni_version = FALSE) {
       "year", "chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
       "record_keydate1", "record_keydate2",
       "lca", "location", "datazone2011",
-      "yearstay", cost_names, bedday_names
+      "yearstay"
+      # , cost_names, bedday_names
     )
   ) %>%
     dplyr::mutate(cij_pattype = dplyr::if_else(.data$cij_admtype == 18, "Non-Elective", .data$cij_pattype)) %>%
@@ -37,7 +38,7 @@ prepare_slf_episode_file <- function(year, ni_version = FALSE) {
       record_keydate1 = min(record_keydate1),
       record_keydate2 = max(record_keydate2),
       dplyr::across(c("lca", "datazone2011"), dplyr::last),
-      dplyr::across(c(cost_names, bedday_names), ~ sum(.x, na.rm = TRUE)),
+      # dplyr::across(c(cost_names, bedday_names), ~ sum(.x, na.rm = TRUE)),
       .groups = "drop"
     ) %>%
     dplyr::collect()

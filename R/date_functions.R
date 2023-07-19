@@ -36,14 +36,23 @@ calculate_fin_month_from_string <- function(month_variable) {
 
 #' Convert four-character year into "20XX/YY"
 #'
-#' @param four_char_year A vector of years, in "CCYY" format
+#' @param four_char_year A vector of years, in a four-character format
+#' @param type If "single_year", assume years are like "2018", if "two_years"
+#' assume years are like "1819"
 #'
 #' @return A vector of financial years in "20XX/YY" format
 #' @export
-format_financial_year <- function(four_char_year) {
-  last_two_digits <- substr(four_char_year, 3, 4)
-  first_two_digits <- substr(four_char_year, 1, 2)
-  financial_year <- stringr::str_c("20", first_two_digits, "/", last_two_digits)
+format_financial_year <- function(four_char_year,
+                                  type = c("single_year", "two_years")) {
+  if (type == "two_years") {
+    last_two_digits <- substr(four_char_year, 3, 4)
+    first_two_digits <- substr(four_char_year, 1, 2)
+    financial_year <- stringr::str_c("20", first_two_digits, "/", last_two_digits)
+  } else if (type == "single_year") {
+    year <- as.character(four_char_year)
+    year_2digit <- as.integer(stringr::str_extract(year, "\\d\\d$"))
+    financial_year <- stringr::str_c(year, "/", as.character(year_2digit + 1))
+  }
   return(financial_year)
 }
 
