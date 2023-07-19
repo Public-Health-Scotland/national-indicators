@@ -51,8 +51,8 @@ match_smra_and_deaths_ni15 <- function(smr_data, deaths_data) {
 
   cal_year <- matched %>%
     dplyr::select(-fin_month, -fy, -quarter) %>%
+    dplyr::mutate(time_period = as.character(cal_month)) %>%
     dplyr::rename(
-      time_period = cal_month,
       year = cal_year
     )
 
@@ -75,7 +75,7 @@ match_smra_and_deaths_ni15 <- function(smr_data, deaths_data) {
 #'
 #' @return A data frame with additional groups
 add_additional_groups_ni15 <- function(data) {
-  aggregated <- fin_year %>%
+  aggregated <- data %>%
     dplyr::group_by(year, time_period, ca2019name, hscp_locality) %>%
     dplyr::summarise(
       numerator = sum(los, na.rm = TRUE),
