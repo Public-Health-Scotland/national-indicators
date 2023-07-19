@@ -176,7 +176,7 @@ get_lookups_dir <- function() {
 #'
 #' @return An [fs::path()] to the Scottish Postcode Directory
 #' @export
-get_spd_path <- function(file_name = NULL, ext = "rds") {
+get_spd_path <- function(file_name = NULL, ext = "parquet") {
   spd_dir <-
     fs::path(
       get_lookups_dir(),
@@ -230,7 +230,7 @@ get_locality_path <- function(ext = "rds") {
 #'
 #' @return An [fs::path()] to the SIMD file
 #' @export
-get_simd_path <- function(file_name = NULL, ext = "rds") {
+get_simd_path <- function(file_name = NULL, ext = "parquet") {
   simd_dir <-
     fs::path(get_lookups_dir(), "Deprivation")
 

@@ -31,7 +31,7 @@ create_population_lookup <- function(
 
   # Read in the lookup for the Scottish Postcode Directory and aggregate it so we
   # have one partnership name for each datazone
-  temp_pc <- readr::read_rds(spd_path) %>%
+  temp_pc <- arrow::read_parquet(spd_path) %>%
     dplyr::select(ca2019name, datazone2011) %>%
     dplyr::group_by(datazone2011) %>%
     dplyr::summarise(lca = dplyr::first(ca2019name))
@@ -132,7 +132,7 @@ create_lca_population_lookup <- function(
   # Read in the lookup for the Scottish Postcode Directory and aggregate it so we
   # have one partnership name for each datazone
   temp_pc <- arrow::read_parquet(
-    get_spd_path(ext = "parquet"),
+    get_spd_path(),
     col_select = c("ca2019name", "datazone2011")
   ) %>%
     dplyr::group_by(datazone2011) %>%
