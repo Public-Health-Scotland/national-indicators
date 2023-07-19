@@ -137,8 +137,8 @@ calculate_ni16_final_output <- function(write_to_disk = TRUE) {
     purrr::map(~ dplyr::mutate(.x, pop_year = stringr::str_sub(year, 1, 4)) %>%
       dplyr::left_join(
         read_population_lookup(
-          min_year = 2013,
-          ages_required = "over65"
+          ages_required = "over65",
+          type = "locality"
         ),
         by = c("pop_year", "locality", "partnership")
       ) %>%

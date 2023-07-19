@@ -68,7 +68,7 @@ calculate_ni12 <- function(data,
 
   final_values <- date_level_totals %>%
     purrr::map(~ add_all_groupings_ni12(.x)) %>%
-    purrr::map(~ dplyr::left_join(.x, read_population_lookup(min_year = 2017, ages_required = "over18", type = "locality"),
+    purrr::map(~ dplyr::left_join(.x, read_population_lookup(ages_required = "over18", type = "locality"),
       by = c("hscp_locality" = "locality", "pop_year", "partnership")
     ) %>%
       dplyr::mutate(value = .data$admissions / .data$over18_pop * 100000))
