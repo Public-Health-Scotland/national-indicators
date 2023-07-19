@@ -17,13 +17,14 @@ prepare_slf_episode_file <- function(year, ni_version = FALSE) {
 
   slf <- arrow::read_parquet(slf_path,
     col_select = c(
-      "year", "chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
+      "year", "anon_chi", "cij_marker", "cij_pattype", "cij_admtype", "age", "recid", "smrtype",
       "record_keydate1", "record_keydate2",
       "lca", "location", "datazone2011",
       "yearstay"
       # , cost_names, bedday_names
     )
   ) %>%
+    dplyr::rename(chi = anon_chi) %>%
     dplyr::mutate(cij_pattype = dplyr::if_else(.data$cij_admtype == 18, "Non-Elective", .data$cij_pattype)) %>%
     dplyr::filter(!is_missing(.data$chi) &
       !is_missing(.data$datazone2011) &
@@ -42,6 +43,14 @@ prepare_slf_episode_file <- function(year, ni_version = FALSE) {
       .groups = "drop"
     ) %>%
     dplyr::collect()
+
+  date_class <- class(slf$record_keydate1) == "Date" & class(slf$record_keydate2) == "Date"
+
+  if (!date_class) {
+    slf <- slf %>%
+      dplyr::mutate(record_keydate1 = lubridate::ymd(record_keydate1),
+                    record_keydate2 = lubridate::ymd(record_keydate2))
+  }
 
   return(slf)
 }
