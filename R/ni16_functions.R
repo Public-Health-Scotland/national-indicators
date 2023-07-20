@@ -28,8 +28,9 @@ process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
       cal_year = lubridate::year(discharge_date)
     ) %>%
     dplyr::left_join(
-      readr::read_rds(get_spd_path()) %>%
-        dplyr::select("pc7", "ca2018", "datazone2011"),
+      arrow::read_parquet(get_spd_path(),
+        col_select = c("pc7", "ca2018", "datazone2011")
+      ),
       by = c("postcode" = "pc7")
     ) %>%
     dplyr::filter(!is_missing(datazone2011)) %>%

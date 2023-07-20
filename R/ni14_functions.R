@@ -118,7 +118,7 @@ match_smra_and_deaths <- function(smra_data, gro_data) {
 
 match_on_geographies <- function(data) {
   return_data <- dplyr::left_join(data,
-    readr::read_rds(get_spd_path()),
+    arrow::read_parquet(get_spd_path()),
     by = c("postcode" = "pc7")
   ) %>%
     dplyr::left_join(
