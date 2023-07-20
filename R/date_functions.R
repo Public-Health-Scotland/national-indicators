@@ -64,7 +64,7 @@ format_financial_year <- function(four_char_year,
 #' @return A named list containing the financial_year, first_cal_year, second_cal_year and pop_year.
 #' @export
 get_different_years <- function(year) {
-  financial_year <- format_financial_year(year)
+  financial_year <- format_financial_year(year, type = "two_years")
   first_cal_year <- paste0("20", stringr::str_sub(year, 1, 2))
   second_cal_year <- paste0("20", stringr::str_sub(year, 3, 4))
   pop_year <- first_cal_year
