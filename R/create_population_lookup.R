@@ -1,6 +1,5 @@
 #' Create a population lookup for use with NIs at locality level
 #'
-#' @param min_year The earliest year to use in the lookup
 #' @param pop_est_path See [get_population_estimate_path()] or use custom path
 #' @param spd_path See [get_spd_path()] or use custom path
 #' @param locality_path See [get_locality_path()] or use custom path
@@ -9,14 +8,11 @@
 #' and over 75s
 #' @export
 create_population_lookup <- function(
-    min_year,
     pop_est_path = get_population_estimate_path(),
     spd_path = get_spd_path(),
     locality_path = get_locality_path()) {
   # Read in the most recent populations file
   dz_pops <- readr::read_rds(pop_est_path) %>%
-    # Filter out anything before 2013 as we don't use this data
-    dplyr::filter(year >= min_year) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
     dplyr::mutate(
       over18_pop = rowSums(dplyr::pick(age18:age90plus)),
@@ -96,14 +92,13 @@ create_population_lookup <- function(
       locality = hscp_locality
     )
 
-  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_{min_year}_{latest_update()}.parquet"), compression = "zstd")
+  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_locality.parquet"), compression = "zstd")
 
   return(loc_pops)
 }
 
 #' Create a population lookup for use with NIs at LCA level
 #'
-#' @param min_year The earliest year to use in the lookup
 #' @param pop_est_path See [get_population_estimate_path()] or use custom path
 #' @param spd_path See [get_spd_path()] or use custom path
 #'
@@ -111,12 +106,9 @@ create_population_lookup <- function(
 #' and over 75s
 #' @export
 create_lca_population_lookup <- function(
-    min_year,
     pop_est_path = get_population_estimate_path(),
     spd_path = get_spd_path()) {
   dz_pops <- readr::read_rds(get_population_estimate_path()) %>%
-    # Filter out anything before 2013 as we don't use this data
-    dplyr::filter(year >= min_year) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
     dplyr::mutate(
       over18_pop = rowSums(dplyr::pick(age18:age90plus)),
@@ -187,30 +179,27 @@ create_lca_population_lookup <- function(
       pop_year = year
     )
 
-  arrow::write_parquet(lca_pops, glue::glue("Lookups/population_lookup_lca_{latest_update()}.parquet"), compression = "zstd")
+  arrow::write_parquet(lca_pops, glue::glue("Lookups/population_lookup_lca.parquet"), compression = "zstd")
 
   return(lca_pops)
 }
 
 #' Read the population lookup if one exists, otherwise create one
 #'
-#' @param min_year The minimum year to be passed to [create_population_lookup()]
-#' @param update_suffix Defaults to [latest_update()], the suffix of the population lookup
 #' @param ages_required One of "over18", "over65", "over75", selects ony relevant columns
 #' @param type The level you need the populations at, either "locality" or "partnership"
 #'
 #' @return The population lookup, either read from disk or created
 #' @export
-read_population_lookup <- function(min_year,
-                                   update_suffix = latest_update(),
-                                   ages_required = c("over18", "over65", "over75"),
+read_population_lookup <- function(ages_required = c("over18", "over65", "over75"),
                                    type = c("locality", "partnership")) {
   ages_required <- match.arg(ages_required)
   type <- match.arg(type)
+
   if (type == "locality") {
-    if (file.exists(glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")) == TRUE) {
+    if (file.exists(glue::glue("Lookups/population_lookup_locality.parquet")) == TRUE) {
       pops <- arrow::read_parquet(
-        glue::glue("Lookups/population_lookup_{min_year}_{update_suffix}.parquet")
+        glue::glue("Lookups/population_lookup_locality.parquet")
       ) %>%
         dplyr::select(
           "pop_year",
@@ -219,7 +208,7 @@ read_population_lookup <- function(min_year,
           glue::glue("{ages_required}_pop")
         )
     } else {
-      pops <- create_population_lookup(min_year = min_year) %>%
+      pops <- create_population_lookup() %>%
         dplyr::select(
           "pop_year",
           "partnership",
@@ -228,9 +217,9 @@ read_population_lookup <- function(min_year,
         )
     }
   } else if (type == "partnership") {
-    if (file.exists(glue::glue("Lookups/population_lookup_lca_{update_suffix}.parquet"))) {
+    if (file.exists(glue::glue("Lookups/population_lookup_lca.parquet"))) {
       pops <- arrow::read_parquet(
-        glue::glue("Lookups/population_lookup_lca_{update_suffix}.parquet"),
+        glue::glue("Lookups/population_lookup_lca.parquet"),
         col_select = c(
           "pop_year",
           "partnership",
@@ -238,7 +227,7 @@ read_population_lookup <- function(min_year,
         )
       )
     } else {
-      pops <- create_lca_population_lookup(min_year = min_year) %>%
+      pops <- create_lca_population_lookup() %>%
         dplyr::select(
           "pop_year",
           "partnership",

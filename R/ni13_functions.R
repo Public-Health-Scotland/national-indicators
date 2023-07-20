@@ -349,7 +349,7 @@ add_all_groupings_ni13 <- function(data) {
     dplyr::ungroup() %>%
     dplyr::filter((partnership != "Scotland" | locality == "All") & !is.na(partnership)) %>%
     dplyr::left_join(.,
-      read_population_lookup(min_year = pop_year, ages_required = "over18", type = "locality"),
+      read_population_lookup(ages_required = "over18", type = "locality"),
       by = c("locality", "pop_year", "partnership")
     ) %>%
     dplyr::mutate(value = beddays / over18_pop * 100000) %>%
@@ -393,7 +393,7 @@ add_all_groupings_ni13 <- function(data) {
     dplyr::ungroup() %>%
     dplyr::filter((partnership != "Scotland" | locality == "All") & !is.na(partnership)) %>%
     dplyr::left_join(.,
-      read_population_lookup(min_year = pop_year, ages_required = "over18", type = "locality"),
+      read_population_lookup(ages_required = "over18", type = "locality"),
       by = c("locality", "pop_year", "partnership")
     ) %>%
     dplyr::mutate(value = beddays / over18_pop * 100000)
