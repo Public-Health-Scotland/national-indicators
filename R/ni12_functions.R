@@ -16,16 +16,18 @@ flag_admission_records <- function(record_keydate1,
 
 #' Calculate NI12 from an SLF episode file aggregated to CIJ level
 #'
-#' @param data An episode file aggregated to CIJ level: see [prepare_slf_episode_file()]
-#' @param fin_year_start The start of the financial year
-#' @param fin_year_end The end of the financial year
+#' @param year The year of the SLF to extract in "XXYY" format
+#' @param wirte_to_disk When TRUE, will write the outputs to directory specified in
+#' [get_ni_output_dir()]
 #'
 #' @return A list of data frames, one at calendar year and one at financial year level
 #' @export
-calculate_ni12 <- function(data,
-                           fin_year_start,
-                           fin_year_end) {
-  dates_and_locality <- data %>%
+calculate_ni12 <- function(year, write_to_disk = FALSE) {
+
+  fin_year_start <- lubridate::ymd(glue::glue("20{stringr::str_sub(year, 1, 2)}-04-01"))
+  fin_year_end <- lubridate::ymd(glue::glue("20{stringr::str_sub(year, 3, 4)}-03-31"))
+
+  dates_and_locality <- prepare_slf_episode_file(year) %>%
     dplyr::mutate(admission_record_flag = flag_admission_records(record_keydate1, fin_year_start, fin_year_end)) %>%
     dplyr::mutate(
       record_keydate1 =
@@ -72,6 +74,11 @@ calculate_ni12 <- function(data,
       by = c("hscp_locality" = "locality", "pop_year", "partnership")
     ) %>%
       dplyr::mutate(value = .data$admissions / .data$over18_pop * 100000))
+
+  if (write_to_disk) {
+    arrow::write_parquet(final_values[["fin_year_totals"]], fs::path(get_ni_output_dir(), glue::glue("NI12_20{year}_financial_year.parquet")))
+    arrow::write_parquet(final_values[["cal_year_totals"]], fs::path(get_ni_output_dir(), glue::glue("NI12_20{year}_calendar_year.parquet")))
+  }
 
   return(final_values)
 }
