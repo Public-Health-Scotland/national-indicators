@@ -29,7 +29,8 @@ process_ni16_smra_extract <- function(min_date = "01-APR-2013") {
     ) %>%
     dplyr::left_join(
       arrow::read_parquet(get_spd_path(),
-                          col_select = c("pc7", "ca2018", "datazone2011")),
+        col_select = c("pc7", "ca2018", "datazone2011")
+      ),
       by = c("postcode" = "pc7")
     ) %>%
     dplyr::filter(!is_missing(datazone2011)) %>%

@@ -16,10 +16,13 @@ process_ni15_gro_extract <- function(extract_start, extract_end) {
       cal_year = lubridate::year(.data$date_of_death)
     ) %>%
     dplyr::left_join(., arrow::read_parquet(get_spd_path(),
-                                            col_select = c("pc7", "ca2019name", "datazone2011")),
-                     by = c("postcode" = "pc7")) %>%
+      col_select = c("pc7", "ca2019name", "datazone2011")
+    ),
+    by = c("postcode" = "pc7")
+    ) %>%
     dplyr::left_join(., readr::read_rds(get_locality_path()) %>% dplyr::select("datazone2011", "hscp_locality"),
-                     by = "datazone2011") %>%
+      by = "datazone2011"
+    ) %>%
     dplyr::select(-"datazone2011")
 
   return(deaths)
