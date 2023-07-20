@@ -5,15 +5,12 @@
 \title{Create a population lookup for use with NIs at locality level}
 \usage{
 create_population_lookup(
-  min_year,
   pop_est_path = get_population_estimate_path(),
   spd_path = get_spd_path(),
   locality_path = get_locality_path()
 )
 }
 \arguments{
-\item{min_year}{The earliest year to use in the lookup}
-
 \item{pop_est_path}{See \code{\link[=get_population_estimate_path]{get_population_estimate_path()}} or use custom path}
 
 \item{spd_path}{See \code{\link[=get_spd_path]{get_spd_path()}} or use custom path}
