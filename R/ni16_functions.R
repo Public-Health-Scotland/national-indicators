@@ -133,7 +133,7 @@ calculate_ni16_final_output <- function(write_to_disk = TRUE) {
     calendar = aggregate_to_date_level(smra_extract, "calendar"),
     financial = aggregate_to_date_level(smra_extract, "financial")
   ) %>%
-    purrr::map(~ add_additional_groups(.x)) %>%
+    purrr::map(~ add_additional_groups_ni16(.x)) %>%
     purrr::map(~ dplyr::mutate(.x, pop_year = stringr::str_sub(year, 1, 4)) %>%
       dplyr::left_join(
         read_population_lookup(
