@@ -29,104 +29,92 @@ add_readmission_flag <- function(data) {
   return(return_data)
 }
 
-#' Create a flag of deaths from the SMRA discharge type
-#'
-#' @param discharge_type A vector of discharge types. Must be of class `integer`
-#'
-#' @return A boolean vector of death flags
-add_smra_death_flag <- function(discharge_type) {
-  discharged_dead <- discharge_type %/% 10 == 4
-  return(discharged_dead)
-}
-
 #' Read in and process SMRA extract for NI14
+#'
+#' @param min_date Defaults to 01-APR-2013 but can be changed. Represents earliest
+#' discharge date from SMRA
 #'
 #' @return A tibble
 #' @import data.table
-process_ni14_smra_extract <- function() {
+process_ni14_smra_extract <- function(min_date = "01-APR-2013") {
+  # Fetch the SMRA query from SQL file, min_date is used here for earliest
+  # discharge date
+  smra_query <- glue::glue(readr::read_file("SQL/ni14_smra.sql"))
+
   # Read in data
   smra_extract <-
+    # Get SMRA extract
     tibble::as_tibble(
-      odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni14_smra.sql"))
+      odbc::dbGetQuery(connect_to_smra(), smra_query)
     ) %>%
-    # For R-standard column names
     janitor::clean_names() %>%
-    # Make sure these variables are in date format for quicker summarising
+    # Convert to date format for easier processing
     dplyr::mutate(
-      cis_admdate = as.Date(.data$admission_date),
-      cis_disdate = as.Date(.data$discharge_date),
+      admission_date = as.Date(.data$admission_date),
+      discharge_date = as.Date(.data$discharge_date),
       discharge_type = as.integer(.data$discharge_type)
     ) %>%
-    # Aggregate to unique CIS level, based on link_no and cis_marker
-    # Aggregate to unique CIS level, based on link_no and cis_marker
+    # Aggregate to cis level
     data.table::as.data.table() %>%
     dplyr::group_by(link_no, cis_marker) %>%
     dplyr::summarise(
-      cis_admdate = min(cis_admdate),
-      cis_disdate = max(cis_disdate),
+      cis_admdate = min(admission_date),
+      cis_disdate = max(discharge_date),
       admission_type = dplyr::first(admission_type),
-      discharge_type = dplyr::last(discharge_type)
+      discharge_type = dplyr::last(discharge_type),
+      postcode = dplyr::last(postcode)
     ) %>%
     dplyr::ungroup() %>%
     tibble::as_tibble() %>%
-    add_readmission_flag() %>%
-    dplyr::mutate(discharged_dead = add_smra_death_flag(discharge_type))
+    # Add flag for emergency readmissions within 28 days
+    add_readmission_flag()
 
   return(smra_extract)
 }
 
 #' Read in and process GRO Deaths extract for NI14
 #'
-#' @return A data frame
-process_ni14_gro_extract <- function() {
-  gro_extract <-
-    tibble::as_tibble(
-      odbc::dbGetQuery(connect_to_smra(), readr::read_file("SQL/ni14_gro.sql"))
-    ) %>%
+#' @param min_date The minimum date for date of death, read from gro
+#'
+#' @return A data frame of death dates and link_no
+process_ni14_nrs_extract <- function(min_date = "01-APR-2022") {
+  # Read query from SQL file
+  nrs_query <- glue::glue(readr::read_file("SQL/ni14_gro.sql"))
+
+  nrs_extract <- odbc::dbGetQuery(connect_to_smra(), nrs_query) %>%
+    tibble::as_tibble() %>%
     # For R-standard column names
-    janitor::clean_names() %>%
-    # Order by link no for matching
-    dplyr::arrange(.data$link_no) %>%
-    # Use Lubridate to put into date format
-    dplyr::mutate(death_date = as.Date(.data$death_date))
-  return(gro_extract)
+    janitor::clean_names()
+
+  return(nrs_extract)
 }
 
-match_smra_and_deaths <- function(smra_data, gro_data) {
-  # Match the death dates onto the main table
-  return_data <-
-    dplyr::left_join(smra_data,
-      gro_data,
-      by = "link_no"
-    ) %>%
-    # If the death date is the same as a discharge
-    # we will discount it, as this cannot result in a readmission
+#' Match SMRA extract to NRS deaths extract to ensure data quality and
+#' removal of records where individual died
+#'
+#' @param smra_data Extract created by [process_ni14_smra_extract]
+#' @param nrs_data Extract created by [process_ni14_nrs_extract]
+#'
+#' @return A matched data frame with additional variables, key variable being 'stay',
+#' which is TRUE when individual is not dead
+match_smra_and_deaths <- function(smra_data, nrs_data) {
+  matched_extracts <-
+    dplyr::left_join(smra_data, nrs_data, by = "link_no", relationship = "many-to-one") %>%
     dplyr::mutate(
-      discharge_to_death = .data$death_date - .data$cis_disdate,
-      discharged_dead_both =
-        discharge_to_death <= 0 & death_date >= cis_admdate |
-          discharged_dead,
-      dplyr::across("discharged_dead_both", ~ replace(., is.na(.), FALSE)),
+      # Variable for if person is discharged dead in SMRA, any discharge type
+      # in the 40s
+      discharged_dead = .data$discharge_type %/% 10 == 4,
+      # Time between SMRA discharge date and NRS death date
+      discharge_to_death = lubridate::int_length(lubridate::interval(cis_disdate, death_date)),
+      # Flag if discharge occurs after death or death occurs before admission (data quality)
+      death_before_discharge = .data$discharge_to_death <= 0 & death_date >= cis_admdate,
+      # Flag to confirm person is declared dead in both extracts
+      discharged_dead_both = death_before_discharge | discharged_dead,
+      discharged_dead_both = tidyr::replace_na(discharged_dead_both, FALSE),
       # Set up a flag to keep records where patient is not dead at discharge date
-      stay = !discharged_dead_both,
-      # Extract the financial year and financial month
-      fin_month = calculate_financial_month(cis_disdate),
-      year = phsmethods::extract_fin_year(cis_disdate)
+      stay = !.data$discharged_dead_both,
     )
-  return(return_data)
-}
-
-match_on_geographies <- function(data) {
-  return_data <- dplyr::left_join(data,
-    arrow::read_parquet(get_spd_path()),
-    by = c("postcode" = "pc7")
-  ) %>%
-    dplyr::left_join(
-      readr::read_rds(get_locality_path()) %>%
-        dplyr::select("datazone2011", "hscp_locality"),
-      by = "datazone2011"
-    )
-  return(return_data)
+  return(matched_extracts)
 }
 
 #' Calculate locality totals
@@ -135,25 +123,90 @@ match_on_geographies <- function(data) {
 #'
 #' @return a [tibble][tibble::tibble-package]
 calculate_locality_totals <- function(data) {
-  # Aggregate to locality-level at the lowest
-  return_data <- data %>%
+  geog_data <- data %>%
+    get_locality_from_postcode() %>%
+    dplyr::mutate(
+      fin_month = calculate_financial_month(cis_disdate),
+      fin_year = phsmethods::extract_fin_year(cis_disdate),
+      cal_month = lubridate::month(cis_disdate),
+      cal_year = lubridate::year(cis_disdate),
+      partnership = phsmethods::match_area(ca2018)
+    ) %>%
     dplyr::select(
-      "year",
+      "fin_year",
       "fin_month",
-      "ca2018",
-      "hscp_locality",
-      "datazone2011",
+      "cal_year",
+      "cal_month",
+      "partnership",
+      `locality` = "hscp_locality",
       "emergency_readm_28",
       "stay"
-    ) %>%
-    dtplyr::lazy_dt() %>%
-    dplyr::group_by(year, fin_month, ca2018, hscp_locality) %>%
+    )
+
+  fin_year_data <- geog_data %>%
+    dplyr::group_by(fin_year, fin_month, partnership, locality) %>%
     dplyr::summarise(
-      dplyr::across(emergency_readm_28:stay, ~ sum(.x, na.rm = TRUE))
+      dplyr::across(c("emergency_readm_28", "stay"), ~ sum(.x, na.rm = TRUE))
     ) %>%
     dplyr::ungroup() %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(partnership = phsmethods::match_area(ca2018))
+    dplyr::rename(year = fin_year, month = fin_month)
+
+  cal_year_data <- geog_data %>%
+    dplyr::group_by(cal_year, cal_month, partnership, locality) %>%
+    dplyr::summarise(
+      dplyr::across(c("emergency_readm_28", "stay"), ~ sum(.x, na.rm = TRUE))
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(year = cal_year, month = cal_month)
+
+  return(list(
+    "fin_year" = fin_year_data,
+    "cal_year" = cal_year_data
+  ))
+}
+
+#' Add 'all' groups to data frame - annual totals, partnership totals,
+#' Clackmannanshire & Stirling totals, and Soctland totals, then aggregate
+#'
+#' @param data A data frame
+#'
+#' @return A data frame with the additional totals
+add_additional_groups_ni14 <- function(data) {
+  return_data <- data %>%
+    # Make annual totals
+    dplyr::mutate(month = as.character(month)) %>%
+    add_all_grouping("month", "Annual") %>%
+    # Make Clackmannanshire & Stirling totals
+    dplyr::mutate(temp_part = dplyr::if_else(partnership %in% c("Clackamannanshire", "Stirling"),
+      "Clackmannanshire and Stirling",
+      NA_character_
+    )) %>%
+    tidyr::pivot_longer(
+      cols = c(partnership, temp_part),
+      values_to = "partnership",
+      values_drop_na = TRUE
+    ) %>%
+    dplyr::select(-name) %>%
+    # Make partnership totals
+    add_all_grouping("locality", "All") %>%
+    # Make Scotland totals
+    dplyr::mutate(temp_part = dplyr::if_else(partnership == "Clackmannanshire and Stirling",
+      NA_character_,
+      "Scotland"
+    )) %>%
+    tidyr::pivot_longer(
+      cols = c(partnership, temp_part),
+      values_to = "partnership",
+      values_drop_na = TRUE
+    ) %>%
+    dplyr::select(-name) %>%
+    # Select out any rows where partnership is Scotland
+    # and localities aren't 'all'
+    dplyr::filter(partnership != "Scotland" | locality == "All") %>%
+    # Aggregate
+    dplyr::group_by(year, month, partnership, locality) %>%
+    dplyr::summarise(dplyr::across(c("emergency_readm_28", "stay"), ~ sum(.x, na.rm = TRUE))) %>%
+    dplyr::ungroup()
 
   return(return_data)
 }
@@ -164,11 +217,13 @@ calculate_locality_totals <- function(data) {
 #' @export
 calculate_ni14 <- function() {
   smra_data <- process_ni14_smra_extract()
-  gro_data <- process_ni14_gro_extract()
+  nrs_data <- process_ni14_nrs_extract()
 
   final_data <-
-    match_smra_and_deaths(smra_data, gro_data) %>%
-    match_on_geographies() %>%
-    calculate_locality_totals()
+    match_smra_and_deaths(smra_data, nrs_data) %>%
+    calculate_locality_totals() %>%
+    purrr::map(~ add_additional_groups_ni14(.x)) %>%
+    purrr::map(~ dplyr::mutate(.x, value = .data$emergency_readm_28 / .data$stay * 1000))
+
   return(final_data)
 }
