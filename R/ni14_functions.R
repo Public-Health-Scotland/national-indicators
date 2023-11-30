@@ -114,7 +114,6 @@ match_smra_and_deaths <- function(smra_data, nrs_data) {
       # Set up a flag to keep records where patient is not dead at discharge date
       stay = !.data$discharged_dead_both,
     )
-
   return(matched_extracts)
 }
 
