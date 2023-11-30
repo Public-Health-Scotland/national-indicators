@@ -20,6 +20,7 @@ Imports:
     haven,
     janitor,
     lubridate,
+    magrittr,
     odbc,
     phsmethods (>= 0.2.2),
     readr,
@@ -29,7 +30,7 @@ Imports:
     tibble,
     tidyr
 Remotes: 
-    Public-Health-Scotland
+    Public-Health-Scotland/phsmethods
 URL: https://github.com/Public-Health-Scotland/national-indicators
 BugReports: https://github.com/Public-Health-Scotland/national-indicators/issues
 Suggests: 
