@@ -76,8 +76,7 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
       "denominator",
       "rate",
       "ind_no"
-    ) %>%
-    dplyr::mutate(year = format_financial_year(year, "single_year"))
+    )
 
   max_year <- max(spreadsheet_output$year)
 
@@ -110,8 +109,8 @@ calculate_ni18 <- function(path, min_year, write_to_disk = TRUE) {
     dplyr::mutate(year = format_financial_year(year, "single_year"))
 
   if (write_to_disk) {
-    arrow::write_parquet(spreadsheet_output, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_spreadsheet_output.parquet")))
-    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("NI18_{max_year}_tableau_output.parquet")))
+    arrow::write_parquet(spreadsheet_output, fs::path(get_ni_output_dir(), glue::glue("ni18_{max_year}_spreadsheet_output.parquet")))
+    arrow::write_parquet(ni18_final_tableau, fs::path(get_ni_output_dir(), glue::glue("ni18_{max_year}_tableau_output.parquet")))
   }
 
   return(list(spreadsheet_output, ni18_final_tableau))
