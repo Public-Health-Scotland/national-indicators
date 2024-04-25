@@ -48,7 +48,7 @@ create_population_lookup <- function(
   loc_pops <- loc_pops %>%
     # Create dummy years that we do not have estimates for yet
     dplyr::bind_rows(
-      purrr::map_df(1:3, ~
+      purrr::map_df(1:4, ~
         loc_pops %>%
           dplyr::filter(year == latest_pop_year) %>%
           dplyr::mutate(
@@ -91,7 +91,7 @@ create_population_lookup <- function(
       locality = hscp_locality
     )
 
-  arrow::write_parquet(loc_pops, glue::glue("Lookups/population_lookup_locality.parquet"), compression = "zstd")
+  arrow::write_parquet(loc_pops, glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_locality.parquet")), compression = "zstd")
 
   return(loc_pops)
 }
@@ -140,7 +140,7 @@ create_lca_population_lookup <- function(
   lca_pops <- lca_pops %>%
     # Create dummy years that we do not have estimates for yet
     dplyr::bind_rows(
-      purrr::map_df(1:3, ~
+      purrr::map_df(1:4, ~
         lca_pops %>%
           dplyr::filter(year == latest_pop_year) %>%
           dplyr::mutate(
@@ -178,7 +178,7 @@ create_lca_population_lookup <- function(
       pop_year = year
     )
 
-  arrow::write_parquet(lca_pops, glue::glue("Lookups/population_lookup_lca.parquet"), compression = "zstd")
+  arrow::write_parquet(lca_pops, glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_lca.parquet")), compression = "zstd")
 
   return(lca_pops)
 }
@@ -196,9 +196,9 @@ read_population_lookup <- function(ages_required = c("over18", "over65", "over75
   type <- match.arg(type)
 
   if (type == "locality") {
-    if (file.exists(glue::glue("Lookups/population_lookup_locality.parquet")) == TRUE) {
+    if (file.exists(glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_locality.parquet"))) == TRUE) {
       pops <- arrow::read_parquet(
-        glue::glue("Lookups/population_lookup_locality.parquet")
+        glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_locality.parquet"))
       ) %>%
         dplyr::select(
           "pop_year",
@@ -216,9 +216,9 @@ read_population_lookup <- function(ages_required = c("over18", "over65", "over75
         )
     }
   } else if (type == "partnership") {
-    if (file.exists(glue::glue("Lookups/population_lookup_lca.parquet"))) {
+    if (file.exists(glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_lca.parquet")))) {
       pops <- arrow::read_parquet(
-        glue::glue("Lookups/population_lookup_lca.parquet"),
+        glue::glue(fs::path(get_ni_dir(), "derived_lookups/population_lookup_lca.parquet")),
         col_select = c(
           "pop_year",
           "partnership",
