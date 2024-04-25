@@ -244,7 +244,7 @@ calculate_monthly_beddays <- function(data, year) {
 #' @return A data frame with added columns for population year, financial year,
 #' calendar year, calendar month, and financial month
 format_date_levels_ni13 <- function(data, year) {
-  years <- get_different_years(year)
+  years <- get_different_years(year, type = "two_years")
 
   return_data <- data %>%
     tidyr::pivot_longer(
