@@ -24,7 +24,8 @@ add_readmission_flag <- function(data) {
       # Flag if the readmission was within 28 days and it was an emergency
       emergency_readm_28 = .data$days_between_stays %in% 0:28 & .data$emergency_readm,
       dplyr::across("emergency_readm_28", ~ replace(., is.na(.), FALSE))
-    )
+    ) %>%
+    dplyr::ungroup()
 
   return(return_data)
 }
@@ -36,7 +37,7 @@ add_readmission_flag <- function(data) {
 #'
 #' @return A tibble
 #' @import data.table
-process_ni14_smra_extract <- function(min_date = "01-APR-2013") {
+process_ni14_smra_extract <- function(min_date = "01-APR-2015") {
   # Fetch the SMRA query from SQL file, min_date is used here for earliest
   # discharge date
   smra_query <- glue::glue(readr::read_file("SQL/ni14_smra.sql"))
@@ -55,16 +56,16 @@ process_ni14_smra_extract <- function(min_date = "01-APR-2013") {
       discharge_type = as.integer(.data$discharge_type)
     ) %>%
     # Aggregate to cis level
-    data.table::as.data.table() %>%
-    dplyr::group_by(link_no, cis_marker) %>%
-    dplyr::summarise(
-      cis_admdate = min(admission_date),
-      cis_disdate = max(discharge_date),
-      admission_type = dplyr::first(admission_type),
-      discharge_type = dplyr::last(discharge_type),
-      postcode = dplyr::last(postcode)
-    ) %>%
-    dplyr::ungroup() %>%
+    data.table::as.data.table()
+
+  smra_extract <- smra_extract[, .(cis_admdate = min(admission_date),
+                     cis_disdate = max(discharge_date),
+                     admission_type = first(admission_type),
+                     discharge_type = last(discharge_type),
+                     postcode = last(postcode)),
+                 by = .(link_no, cis_marker)]
+
+  smra_extract <- smra_extract %>%
     tibble::as_tibble() %>%
     # Add flag for emergency readmissions within 28 days
     add_readmission_flag()
@@ -77,7 +78,7 @@ process_ni14_smra_extract <- function(min_date = "01-APR-2013") {
 #' @param min_date The minimum date for date of death, read from gro
 #'
 #' @return A data frame of death dates and link_no
-process_ni14_nrs_extract <- function(min_date = "01-APR-2022") {
+process_ni14_nrs_extract <- function(min_date = "01-APR-2015") {
   # Read query from SQL file
   nrs_query <- glue::glue(readr::read_file("SQL/ni14_gro.sql"))
 
