@@ -156,8 +156,8 @@ calculate_ni16_final_output <- function(write_to_disk = TRUE) {
       ))
 
   if (write_to_disk == TRUE) {
-    arrow::write_parquet(date_level_list[["calendar"]], "Outputs/NI16_calendar_year.parquet")
-    arrow::write_parquet(date_level_list[["financial"]], "Outputs/NI16_financial_year.parquet")
+    arrow::write_parquet(date_level_list[["calendar"]], fs::path(get_ni_output_dir(), "ni16_calendar_year.parquet"))
+    arrow::write_parquet(date_level_list[["financial"]], fs::path(get_ni_output_dir(), "ni16_calendar_year.parquet"))
   }
 
   return(date_level_list)
