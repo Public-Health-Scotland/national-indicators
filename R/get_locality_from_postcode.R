@@ -11,7 +11,7 @@ get_locality_from_postcode <- function(data,
                                        locality_path = get_locality_path()) {
   return_data <- dplyr::left_join(
     data,
-    readr::read_rds(spd_path),
+    arrow::read_parquet(spd_path),
     by = dplyr::join_by("postcode" == "pc7")
   ) %>%
     dplyr::left_join(
