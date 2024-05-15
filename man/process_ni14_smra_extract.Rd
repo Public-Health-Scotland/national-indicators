@@ -4,7 +4,7 @@
 \alias{process_ni14_smra_extract}
 \title{Read in and process SMRA extract for NI14}
 \usage{
-process_ni14_smra_extract(min_date = "01-APR-2013")
+process_ni14_smra_extract(min_date = "01-APR-2015")
 }
 \arguments{
 \item{min_date}{Defaults to 01-APR-2013 but can be changed. Represents earliest

@@ -5,7 +5,7 @@
 \title{Get the full financial year, calendar years, and population year from a
 single year input}
 \usage{
-get_different_years(year)
+get_different_years(year, type = c("single_year", "two_years"))
 }
 \arguments{
 \item{year}{A financial year in format "XXYY"}

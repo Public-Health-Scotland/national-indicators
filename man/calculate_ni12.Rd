@@ -4,14 +4,13 @@
 \alias{calculate_ni12}
 \title{Calculate NI12 from an SLF episode file aggregated to CIJ level}
 \usage{
-calculate_ni12(data, fin_year_start, fin_year_end)
+calculate_ni12(year, write_to_disk = FALSE)
 }
 \arguments{
-\item{data}{An episode file aggregated to CIJ level: see \code{\link[=prepare_slf_episode_file]{prepare_slf_episode_file()}}}
+\item{year}{The year of the SLF to extract in "XXYY" format}
 
-\item{fin_year_start}{The start of the financial year}
-
-\item{fin_year_end}{The end of the financial year}
+\item{wirte_to_disk}{When TRUE, will write the outputs to directory specified in
+\code{\link[=get_ni_output_dir]{get_ni_output_dir()}}}
 }
 \value{
 A list of data frames, one at calendar year and one at financial year level

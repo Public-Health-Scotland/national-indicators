@@ -4,7 +4,7 @@
 \alias{process_ni14_nrs_extract}
 \title{Read in and process GRO Deaths extract for NI14}
 \usage{
-process_ni14_nrs_extract(min_date = "01-APR-2022")
+process_ni14_nrs_extract(min_date = "01-APR-2015")
 }
 \arguments{
 \item{min_date}{The minimum date for date of death, read from gro}
