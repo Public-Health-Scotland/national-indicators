@@ -9,7 +9,7 @@ standardise_partnership_names <- function(partnership_name) {
     dplyr::case_when(
       stringr::str_detect(partnership_name, "^City of Edinburgh$") ~ "Edinburgh",
       partnership_name == "Edinburgh, City of" ~ "Edinburgh",
-      partnership_name == "Na h-Eileanan Siar" ~ "Western Isles",
+      stringr::str_detect(partnership_name, "(siar$|Siar$)") ~ "Western Isles",
       stringr::str_detect(partnership_name, "&") ~ stringr::str_replace(partnership_name, "&", "and"),
       stringr::str_detect(partnership_name, "(^Orkney$|^Shetland$)") ~
         stringr::str_replace(partnership_name, "(^Orkney$|^Shetland$)", "\\1 Islands"),
