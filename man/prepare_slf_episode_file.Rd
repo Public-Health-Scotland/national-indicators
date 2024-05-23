@@ -4,12 +4,10 @@
 \alias{prepare_slf_episode_file}
 \title{Prepare the SLF Episode File for use with NI12, NI13, and NI20}
 \usage{
-prepare_slf_episode_file(year, ni_version = FALSE)
+prepare_slf_episode_file(year)
 }
 \arguments{
-\item{ni_version}{Boolean, whether to use specially produced NI version of SLF or not}
-
-\item{fin_year}{The financial year for extract}
+\item{year}{The financial year for extract}
 }
 \value{
 A filtered SLF aggregated to CIJ level
