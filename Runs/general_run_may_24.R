@@ -540,3 +540,8 @@ haven::write_sav(output, fs::path(get_ni_tableau_output_dir(), "NI Tableau Final
 haven::write_sav(output, fs::path(get_ni_tableau_output_dir(), "NI Tableau Final-L3-September-2020-NoSecurity.sav"))
 haven::write_sav(output %>% dplyr::filter(Locality == "All"), fs::path(get_ni_tableau_output_dir(), "NI Tableau Final-L2-September-2020.sav"))
 
+new <- haven::read_sav(fs::path(get_ni_tableau_output_dir(), "NI Tableau Final-L3-September-2020.sav"))
+colnames(new) <- c("indicator", "year", "time_period", "partnership", "locality", "denominator", "value", "scotland", "numerator", "LA_Code", "upper_ci", "lower_ci")
+
+arrow::write_parquet(new, fs::path(get_ni_tableau_output_dir(), "tableau_output_may_2024.parquet"))
+
