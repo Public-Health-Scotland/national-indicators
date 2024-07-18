@@ -23,7 +23,6 @@ flag_admission_records <- function(record_keydate1,
 #' @return A list of data frames, one at calendar year and one at financial year level
 #' @export
 calculate_ni12 <- function(year, write_to_disk = FALSE) {
-
   fin_year_start <- lubridate::ymd(glue::glue("20{stringr::str_sub(year, 1, 2)}-04-01"))
   fin_year_end <- lubridate::ymd(glue::glue("20{stringr::str_sub(year, 3, 4)}-03-31"))
 
