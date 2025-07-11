@@ -58,12 +58,15 @@ process_ni14_smra_extract <- function(min_date = "01-APR-2015") {
     # Aggregate to cis level
     data.table::as.data.table()
 
-  smra_extract <- smra_extract[, .(cis_admdate = min(admission_date),
-                     cis_disdate = max(discharge_date),
-                     admission_type = first(admission_type),
-                     discharge_type = last(discharge_type),
-                     postcode = last(postcode)),
-                 by = .(link_no, cis_marker)]
+  smra_extract <- smra_extract[, .(
+    cis_admdate = min(admission_date),
+    cis_disdate = max(discharge_date),
+    admission_type = first(admission_type),
+    discharge_type = last(discharge_type),
+    postcode = last(postcode)
+  ),
+  by = .(link_no, cis_marker)
+  ]
 
   smra_extract <- smra_extract %>%
     tibble::as_tibble() %>%
