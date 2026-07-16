@@ -7,7 +7,7 @@
 #'
 #' @family Initialisation
 latest_update <- function() {
-  "Mar-2024"
+  "Mar-2026"
 }
 
 #' Previous update
@@ -19,7 +19,7 @@ latest_update <- function() {
 #'
 #' @family Initialisation
 previous_update <- function() {
-  "Dec-2024"
+  "Jul-2025"
 }
 
 #' Latest year of the HACE indicators
@@ -55,11 +55,14 @@ indicators_to_update <- function() {
 #' @family Initialisation
 slf_indicator_update_periods <- function() {
   periods <- list(
-    years = c("2020/21", "2021/22", "2022/23"),
+    years = c("2020/21", "2021/22", "2022/23", "2023/24", "2024/25"),
     quarters = c(
       "2020/21 Q1", "2020/21 Q2", "2020/21 Q3", "2020/21 Q4",
       "2021/22 Q1", "2021/22 Q2", "2021/22 Q3", "2021/22 Q4",
-      "2022/23 Q1", "2022/23 Q2", "2022/23 Q3", "2022/23 Q4"
+      "2022/23 Q1", "2022/23 Q2", "2022/23 Q3", "2022/23 Q4",
+      "2023/24 Q1", "2023/24 Q2", "2023/24 Q3", "2023/24 Q4",
+      "2024/25 Q1", "2024/25 Q2", "2024/25 Q3", "2024/25 Q4",
+      "2025/26 Q1", "2025/26 Q2", "2025/26 Q3", "2025/26 Q4"
     )
   )
 
