@@ -8,9 +8,10 @@
 #' and over 75s
 #' @export
 create_population_lookup <- function(
-    pop_est_path = get_population_estimate_path(),
-    spd_path = get_spd_path(),
-    locality_path = get_locality_path()) {
+  pop_est_path = get_population_estimate_path(),
+  spd_path = get_spd_path(),
+  locality_path = get_locality_path()
+) {
   # Read in the most recent populations file
   dz_pops <- readr::read_rds(pop_est_path) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
@@ -105,8 +106,9 @@ create_population_lookup <- function(
 #' and over 75s
 #' @export
 create_lca_population_lookup <- function(
-    pop_est_path = get_population_estimate_path(),
-    spd_path = get_spd_path()) {
+  pop_est_path = get_population_estimate_path(),
+  spd_path = get_spd_path()
+) {
   dz_pops <- readr::read_rds(get_population_estimate_path()) %>%
     # Calculate populations for over 18s, over 65s, and over 75s
     dplyr::mutate(
